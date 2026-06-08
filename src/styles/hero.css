@@ -1,0 +1,54 @@
+/* About Us hero — exact match aikvis.com */
+.home-page .hero {
+  background: #1a4a8e;
+  color: #ffffff;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 1.5rem;
+  position: relative;
+  width: 100%;
+}
+
+.home-page .hero-content {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.home-page .hero-content h1 {
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0 0 1.5rem;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.home-page .hero-content p {
+  color: #ffffff;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .home-page .hero {
+    min-height: 300px;
+    padding: 4rem 1rem;
+  }
+
+  .home-page .hero-content h1 {
+    letter-spacing: 1px;
+    font-size: 2.2rem;
+  }
+
+  .home-page .hero-content p {
+    font-size: 1rem;
+  }
+}

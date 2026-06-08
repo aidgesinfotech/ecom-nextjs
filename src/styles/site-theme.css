@@ -1,0 +1,99 @@
+/* Site-wide: 1200px container + brand blue #1a4a8e + CSS variables */
+:root {
+  --primary-color: #1a4a8e;
+  --primary-hover: #153a6f;
+  --secondary-color: #f8fafc;
+  --accent-color: #7eb03f;
+  --text-dark: #1e293b;
+  --text-light: #64748b;
+  --white: #ffffff;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --max-width: 1200px;
+}
+
+/* Hide Next.js devtools indicator in development */
+[data-nextjs-devtools],
+.devtools-indicator {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Brand blue everywhere site uses primary / navy */
+.announcement-bar,
+.footer,
+.hero,
+.btn-primary,
+.badge,
+.continue-shopping-btn,
+.filter-title,
+.info-icon,
+.product-title,
+.add-to-cart-outline-btn,
+.checkout-input-wrapper:focus-within,
+.checkout-select:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+  --primary-color: #1a4a8e;
+}
+
+.announcement-bar {
+  background: #1a4a8e;
+}
+
+.footer {
+  background: #1a4a8e;
+}
+
+.home-page .hero {
+  background: #1a4a8e;
+}
+
+.btn-primary {
+  background: #1a4a8e;
+}
+
+.badge {
+  background: #1a4a8e;
+}
+
+.spinner {
+  border-top-color: #1a4a8e;
+}
+
+/* Elements using var(--white) — explicit fallback */
+.header,
+.main-header,
+.cart-sidebar,
+.quick-view-modal,
+.product-card,
+.order-now-btn,
+.mobile-sticky-btn,
+.checkout-modal,
+.size-btn.active {
+  --white: #ffffff;
+}
+
+.order-now-btn,
+.mobile-sticky-btn,
+.btn-primary,
+.discount-badge,
+.action-btn:hover {
+  color: #ffffff;
+}
+
+.size-btn.active {
+  background: #1e293b;
+  color: #ffffff;
+}

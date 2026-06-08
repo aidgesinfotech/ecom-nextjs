@@ -1,0 +1,380 @@
+/* Order thank you page — inside checkout modal */
+.checkout-modal.thankyou-mode {
+  max-width: 920px;
+  width: 100%;
+  max-height: 95vh;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.checkout-modal.thankyou-mode .checkout-modal-header {
+  display: none;
+}
+
+.checkout-modal.thankyou-mode .checkout-modal-content {
+  padding: 0;
+}
+
+.order-thankyou {
+  background: #f1f5f9;
+}
+
+.order-thankyou-hero {
+  background: linear-gradient(145deg, #1a4a8e 0%, #0f2744 100%);
+  color: #fff;
+  text-align: center;
+  padding: 2.5rem 1.5rem 2rem;
+}
+
+.order-thankyou-check {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
+}
+
+.order-thankyou-hero h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+}
+
+.order-thankyou-hero p {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  max-width: 480px;
+  margin: 0 auto 1.25rem;
+  line-height: 1.6;
+}
+
+.order-id-badge {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.85rem;
+}
+
+.order-thankyou-body {
+  padding: 1.5rem;
+}
+
+.order-status-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.order-status-card h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #0f172a;
+}
+
+.order-status-track {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.order-status-step {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.order-status-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1a4a8e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+}
+
+.order-status-dot.muted {
+  background: #e2e8f0;
+  color: #94a3b8;
+}
+
+.order-status-step.current .order-status-dot {
+  box-shadow: 0 0 0 4px rgba(26, 74, 142, 0.2);
+}
+
+.order-status-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.2rem;
+}
+
+.order-status-sub {
+  font-size: 0.65rem;
+  color: #64748b;
+  line-height: 1.35;
+  max-width: 120px;
+}
+
+.order-status-line {
+  flex: 0 0 40px;
+  height: 3px;
+  background: #e2e8f0;
+  margin-top: 18px;
+  border-radius: 2px;
+}
+
+.order-status-line.active {
+  background: #1a4a8e;
+}
+
+.order-thankyou-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.order-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.order-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1rem;
+}
+
+.order-item-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.order-item-img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.order-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.order-item-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  margin-bottom: 0.35rem;
+}
+
+.order-item-tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.order-item-tags span {
+  font-size: 0.65rem;
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.order-item-price {
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.order-item-totals {
+  font-size: 0.85rem;
+}
+
+.order-item-total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  color: #475569;
+}
+
+.order-item-total-row .free {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.order-item-total-row.grand {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 0.6rem;
+  margin-top: 0.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.order-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.order-address-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.order-address-item {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  color: #64748b;
+}
+
+.order-address-item svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.order-address-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  margin-bottom: 0.15rem;
+}
+
+.order-address-item p {
+  font-size: 0.85rem;
+  color: #0f172a;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.order-delivery-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.order-meta-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  color: #1a4a8e;
+}
+
+.order-meta-row span {
+  display: block;
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.order-meta-row strong {
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.order-note-box {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 1rem;
+  color: #92400e;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.order-note-box svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.order-continue-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  padding: 0.9rem 1.5rem;
+  background: #1a4a8e;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.order-continue-btn:hover {
+  background: #153d75;
+}
+
+@media (max-width: 768px) {
+  .checkout-modal.thankyou-mode {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    height: 100vh;
+  }
+
+  .order-thankyou-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-status-step {
+    min-width: 80px;
+  }
+
+  .order-status-line {
+    flex: 0 0 20px;
+  }
+
+  .order-thankyou-hero h1 {
+    font-size: 1.4rem;
+  }
+}
