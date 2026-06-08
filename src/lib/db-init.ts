@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { shouldSkipDatabase } from "./db-build";
 import pool from "./db";
 import { SEED_PRODUCTS } from "./seed-products";
 import { DEFAULT_SITE_CONFIG, SITE_SETTING_KEYS } from "./site-config-defaults";
@@ -166,6 +167,7 @@ async function seedDefaultProductsOnce() {
 
 /** Run once per server process: tables + one-time default products. */
 export async function ensureAppReady() {
+  if (shouldSkipDatabase()) return;
   if (ready) return;
   await ensureSchema();
   await seedDefaultProductsOnce();

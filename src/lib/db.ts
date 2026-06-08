@@ -1,4 +1,8 @@
+import dns from "node:dns";
 import mysql from "mysql2/promise";
+
+// Prefer IPv4 — avoids ENETUNREACH on Vercel/serverless when IPv6 is unreachable
+dns.setDefaultResultOrder("ipv4first");
 
 const useSsl = process.env.DB_SSL === "true";
 

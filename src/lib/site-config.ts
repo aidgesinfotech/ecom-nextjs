@@ -2,6 +2,7 @@ import { cache } from "react";
 import { unstable_cache, revalidateTag } from "next/cache";
 import type { RowDataPacket } from "mysql2";
 import pool from "./db";
+import { shouldSkipDatabase } from "./db-build";
 import { ensureAppReady } from "./db-init";
 import {
   DB_KEY_MAP,
@@ -40,6 +41,7 @@ function rowToConfig(rows: RowDataPacket[]): SiteConfig {
 }
 
 async function loadSiteConfigFromDb(): Promise<SiteConfig> {
+  if (shouldSkipDatabase()) return DEFAULT_SITE_CONFIG;
   await ensureAppReady();
   const placeholders = SITE_SETTING_KEYS.map(() => "?").join(", ");
   const [rows] = await pool.query<RowDataPacket[]>(

@@ -1,4 +1,5 @@
 import { revalidateTag, unstable_cache } from "next/cache";
+import { shouldSkipDatabase } from "./db-build";
 import pool from "./db";
 import type { Product } from "./types";
 import { parseImages, parseSizes } from "./format";
@@ -23,6 +24,7 @@ function mapProduct(row: RowDataPacket): Product {
 }
 
 async function fetchProducts(): Promise<Product[]> {
+  if (shouldSkipDatabase()) return [];
   const [rows] = await pool.query<RowDataPacket[]>(
     "SELECT * FROM products ORDER BY created_at DESC"
   );
@@ -30,6 +32,7 @@ async function fetchProducts(): Promise<Product[]> {
 }
 
 async function fetchProductById(id: string): Promise<Product | null> {
+  if (shouldSkipDatabase()) return null;
   const [rows] = await pool.query<RowDataPacket[]>(
     "SELECT * FROM products WHERE id = ? LIMIT 1",
     [id]

@@ -62,14 +62,17 @@ Add **all** of these for **Production**, **Preview**, and **Development**:
 
 > Never commit `.env.local` — use Vercel dashboard only for production secrets.
 
-### 4. Hostinger — allow Vercel to reach MySQL
+### 4. Hostinger — allow Vercel to reach MySQL (CRITICAL)
 
 In **hPanel → Databases → Remote MySQL**:
 
-- Enable remote access for your database user
-- Add host `%` (any host) **or** Vercel’s IP ranges if Hostinger supports it
+1. Open **Remote MySQL**
+2. Add access host: **`%`** (allows Vercel serverless to connect)
+3. Save
 
-Without this, Vercel builds/deploys succeed but the site cannot connect to MySQL.
+Without this, the Vercel **build will pass** but the **live site** will show empty data / errors because MySQL blocks external connections (`ETIMEDOUT`).
+
+Use hostname `srv905.hstgr.io` (or your Hostinger DB host) — not `localhost`.
 
 ### 5. Deploy
 
