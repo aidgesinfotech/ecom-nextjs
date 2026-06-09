@@ -3,13 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, Suspense, useEffect, useState } from "react";
 import { Menu, Search, X } from "lucide-react";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
 import { MAIN_NAV_LINKS } from "@/lib/nav-links";
 import "@/styles/header.css";
 
-export default function Header() {
+function HeaderContent() {
   const { headerLogo, siteName } = useSiteConfig();
   const pathname = usePathname();
   const router = useRouter();
@@ -181,5 +181,13 @@ export default function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+export default function Header() {
+  return (
+    <Suspense fallback={<header className="header" />}>
+      <HeaderContent />
+    </Suspense>
   );
 }

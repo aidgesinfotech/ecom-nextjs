@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import CatalogClient from "@/components/CatalogClient";
 import { getProducts } from "@/lib/products";
 import type { Product } from "@/lib/types";
@@ -14,12 +13,10 @@ export default async function ShopPage() {
   }
 
   return (
-    <Suspense fallback={null}>
-      <CatalogClient
-        products={products}
-        title="Shop"
-        breadcrumb="Home > Shop"
-      />
-    </Suspense>
+    <CatalogClient
+      products={products}
+      title="Shop"
+      breadcrumb="Home > Shop"
+    />
   );
 }

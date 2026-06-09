@@ -1,23 +1,25 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import type { Product } from "@/lib/types";
 import ProductGrid from "./ProductGrid";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "newest";
 
-export default function CatalogClient({
-  products,
-  title = "Shop",
-  breadcrumb = "Home > Shop",
-  featuredOnly = false,
-}: {
+type CatalogClientProps = {
   products: Product[];
   title?: string;
   breadcrumb?: string;
   featuredOnly?: boolean;
-}) {
+};
+
+function CatalogContent({
+  products,
+  title = "Shop",
+  breadcrumb = "Home > Shop",
+  featuredOnly = false,
+}: CatalogClientProps) {
   const searchParams = useSearchParams();
   const searchQuery = (searchParams.get("q") || "").trim().toLowerCase();
   const [sortBy, setSortBy] = useState<SortOption>("featured");
@@ -171,5 +173,13 @@ export default function CatalogClient({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function CatalogClient(props: CatalogClientProps) {
+  return (
+    <Suspense fallback={<div className="catalog-page container section-padding" />}>
+      <CatalogContent {...props} />
+    </Suspense>
   );
 }

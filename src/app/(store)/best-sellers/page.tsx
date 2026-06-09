@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import CatalogClient from "@/components/CatalogClient";
 import { getProducts } from "@/lib/products";
 import type { Product } from "@/lib/types";
@@ -14,13 +13,11 @@ export default async function BestSellersPage() {
   }
 
   return (
-    <Suspense fallback={null}>
-      <CatalogClient
-        products={products}
-        title="Best Sellers"
-        breadcrumb="Home > Best Sellers"
-        featuredOnly
-      />
-    </Suspense>
+    <CatalogClient
+      products={products}
+      title="Best Sellers"
+      breadcrumb="Home > Best Sellers"
+      featuredOnly
+    />
   );
 }

@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import MetaPixel from "@/components/MetaPixel";
@@ -32,9 +31,7 @@ export default async function StoreLayout({
   return (
     <SiteConfigProvider config={config}>
       {config.metaPixelId ? <MetaPixel pixelId={config.metaPixelId} /> : null}
-      <Suspense fallback={null}>
-        <Header />
-      </Suspense>
+      <Header />
       <main style={{ flex: 1 }}>{children}</main>
       <Footer />
     </SiteConfigProvider>
