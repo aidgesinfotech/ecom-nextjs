@@ -7,6 +7,20 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname),
   },
+  async redirects() {
+    return [
+      {
+        source: "/policies/replacement",
+        destination: "/policies/return-refund",
+        permanent: true,
+      },
+      {
+        source: "/catalog",
+        destination: "/shop",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.shopify.com" },

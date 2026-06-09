@@ -31,12 +31,75 @@ const CHECKOUT_STATES = [
   "West Bengal",
 ];
 
+type CheckoutField =
+  | "firstName"
+  | "phone"
+  | "address"
+  | "landmark"
+  | "pincode"
+  | "state"
+  | "city";
+
+type CheckoutFieldErrors = Partial<Record<CheckoutField, string>>;
+
 interface Props {
   product: Product;
   size: string;
   quantity: number;
   open: boolean;
   onClose: () => void;
+}
+
+function digitsOnly(value: string, maxLen: number) {
+  return value.replace(/\D/g, "").slice(0, maxLen);
+}
+
+function validateCheckoutFields(fd: FormData): CheckoutFieldErrors {
+  const errors: CheckoutFieldErrors = {};
+
+  const firstName = (fd.get("firstName") as string).trim();
+  const address = (fd.get("address") as string).trim();
+  const landmark = (fd.get("landmark") as string).trim();
+  const phone = digitsOnly((fd.get("phone") as string) || "", 10);
+  const pincode = digitsOnly((fd.get("pincode") as string) || "", 6);
+  const state = (fd.get("state") as string) || "";
+  const city = (fd.get("city") as string).trim();
+
+  if (!firstName) {
+    errors.firstName = "Please enter your first name.";
+  }
+
+  if (!phone) {
+    errors.phone = "please enter full 10 digit mobile no.";
+  } else if (phone.length !== 10) {
+    errors.phone = "please enter full 10 digit mobile no.";
+  }
+
+  if (!address) {
+    errors.address = "Please enter your complete address.";
+  } else if (address.length < 14) {
+    errors.address = "Please enter a complete address (minimum 14 characters).";
+  }
+
+  if (landmark && landmark.length < 4) {
+    errors.landmark = "Landmark must be at least 4 characters if provided.";
+  }
+
+  if (!pincode) {
+    errors.pincode = "please enter valid 6 digit area pincode";
+  } else if (pincode.length !== 6) {
+    errors.pincode = "please enter valid 6 digit area pincode";
+  }
+
+  if (!state) {
+    errors.state = "Please select your state.";
+  }
+
+  if (!city) {
+    errors.city = "Please enter your city.";
+  }
+
+  return errors;
 }
 
 export default function CheckoutModal({
@@ -48,12 +111,14 @@ export default function CheckoutModal({
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<OrderConfirmation | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<CheckoutFieldErrors>({});
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(480);
 
   useEffect(() => {
     if (!open) return;
     setConfirmedOrder(null);
+    setFieldErrors({});
     setError("");
     setLoading(false);
     setTimer(480);
@@ -74,15 +139,30 @@ export default function CheckoutModal({
   const secs = timer % 60;
   const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 
-  function digitsOnly(value: string, maxLen: number) {
-    return value.replace(/\D/g, "").slice(0, maxLen);
+  function clearFieldError(field: CheckoutField) {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (loading || confirmedOrder) return;
-    setError("");
+
     const fd = new FormData(e.currentTarget);
+    const errors = validateCheckoutFields(fd);
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError("");
+      return;
+    }
+
+    setFieldErrors({});
+    setError("");
 
     const firstName = (fd.get("firstName") as string).trim();
     const lastName = (fd.get("lastName") as string).trim();
@@ -90,26 +170,6 @@ export default function CheckoutModal({
     const landmark = (fd.get("landmark") as string).trim();
     const phone = digitsOnly((fd.get("phone") as string) || "", 10);
     const pincode = digitsOnly((fd.get("pincode") as string) || "", 6);
-
-    if (address.length < 14) {
-      setError("Please enter a complete address (minimum 14 characters).");
-      return;
-    }
-
-    if (landmark && landmark.length < 4) {
-      setError("Landmark must be at least 4 characters if provided.");
-      return;
-    }
-
-    if (phone.length !== 10) {
-      setError("Please enter a valid 10 digit mobile number.");
-      return;
-    }
-
-    if (pincode.length !== 6) {
-      setError("Please enter a valid 6 digit pincode.");
-      return;
-    }
 
     setLoading(true);
 
@@ -163,6 +223,7 @@ export default function CheckoutModal({
         total,
         placedAt,
       });
+      setLoading(false);
     } else {
       const data = await res.json();
       setError(data.error || "Order failed. Please try again.");
@@ -236,170 +297,235 @@ export default function CheckoutModal({
                 Enter Your Complete Details For Fast Express Delivery
               </div>
 
-              <form onSubmit={handleSubmit} aria-busy={loading}>
-                <div className="checkout-form-group">
-                  <div className="checkout-form-label">
-                    <span>
-                      First Name<span className="required">*</span>
-                    </span>
-                  </div>
-                  <div className="checkout-input-wrapper">
-                    <div className="checkout-input-icon">
-                      <User size={18} aria-hidden />
+              <form onSubmit={handleSubmit} noValidate aria-busy={loading}>
+                <div className="checkout-form-field">
+                  <div className="checkout-form-group">
+                    <div className="checkout-form-label">
+                      <span>
+                        First Name<span className="required">*</span>
+                      </span>
                     </div>
-                    <input
-                      className="checkout-input"
-                      name="firstName"
-                      placeholder="In English Language Only"
-                      required
-                      type="text"
-                    />
+                    <div
+                      className={`checkout-input-wrapper ${fieldErrors.firstName ? "has-error" : ""}`}
+                    >
+                      <div className="checkout-input-icon">
+                        <User size={18} aria-hidden />
+                      </div>
+                      <input
+                        className="checkout-input"
+                        name="firstName"
+                        placeholder="In English Language Only"
+                        type="text"
+                        onInput={() => clearFieldError("firstName")}
+                      />
+                    </div>
+                  </div>
+                  {fieldErrors.firstName && (
+                    <p className="checkout-field-error" role="alert">
+                      {fieldErrors.firstName}
+                    </p>
+                  )}
+                </div>
+
+                <div className="checkout-form-field">
+                  <div className="checkout-form-group">
+                    <div className="checkout-form-label">
+                      <span>Last Name</span>
+                    </div>
+                    <div className="checkout-input-wrapper">
+                      <div className="checkout-input-icon">
+                        <User size={18} aria-hidden />
+                      </div>
+                      <input
+                        className="checkout-input"
+                        name="lastName"
+                        placeholder="In English Language Only"
+                        type="text"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="checkout-form-group">
-                  <div className="checkout-form-label">
-                    <span>Last Name</span>
-                  </div>
-                  <div className="checkout-input-wrapper">
-                    <div className="checkout-input-icon">
-                      <User size={18} aria-hidden />
+                <div className="checkout-form-field">
+                  <div className="checkout-form-group">
+                    <div className="checkout-form-label">
+                      <span>
+                        Active Mobile Number<span className="required">*</span>
+                      </span>
                     </div>
-                    <input
-                      className="checkout-input"
-                      name="lastName"
-                      placeholder="In English Language Only"
-                      type="text"
-                    />
+                    <div
+                      className={`checkout-input-wrapper ${fieldErrors.phone ? "has-error" : ""}`}
+                    >
+                      <div className="checkout-input-icon">
+                        <Phone size={18} aria-hidden />
+                      </div>
+                      <input
+                        className="checkout-input"
+                        name="phone"
+                        placeholder="Enter 10 Digits Mobile Number"
+                        inputMode="numeric"
+                        autoComplete="tel"
+                        maxLength={10}
+                        type="tel"
+                        onInput={(e) => {
+                          e.currentTarget.value = digitsOnly(e.currentTarget.value, 10);
+                          clearFieldError("phone");
+                        }}
+                      />
+                    </div>
                   </div>
+                  {fieldErrors.phone && (
+                    <p className="checkout-field-error" role="alert">
+                      {fieldErrors.phone}
+                    </p>
+                  )}
                 </div>
 
-                <div className="checkout-form-group">
-                  <div className="checkout-form-label">
-                    <span>
-                      Active Mobile Number<span className="required">*</span>
-                    </span>
-                  </div>
-                  <div className="checkout-input-wrapper">
-                    <div className="checkout-input-icon">
-                      <Phone size={18} aria-hidden />
+                <div className="checkout-form-field">
+                  <div className="checkout-form-group">
+                    <div className="checkout-form-label">
+                      <span>
+                        Complete Full Address<span className="required">*</span>
+                      </span>
                     </div>
-                    <input
-                      className="checkout-input"
-                      name="phone"
-                      placeholder="Enter 10 Digits Mobile Number"
-                      required
-                      inputMode="numeric"
-                      autoComplete="tel"
-                      maxLength={10}
-                      pattern="[0-9]{10}"
-                      type="tel"
-                      onInput={(e) => {
-                        e.currentTarget.value = digitsOnly(e.currentTarget.value, 10);
-                      }}
-                    />
+                    <div
+                      className={`checkout-input-wrapper ${fieldErrors.address ? "has-error" : ""}`}
+                    >
+                      <div className="checkout-input-icon">
+                        <MapPin size={18} aria-hidden />
+                      </div>
+                      <input
+                        className="checkout-input"
+                        name="address"
+                        placeholder="House No. / Building Name / Street / Area"
+                        type="text"
+                        onInput={() => clearFieldError("address")}
+                      />
+                    </div>
                   </div>
+                  {fieldErrors.address && (
+                    <p className="checkout-field-error" role="alert">
+                      {fieldErrors.address}
+                    </p>
+                  )}
                 </div>
 
-                <div className="checkout-form-group">
-                  <div className="checkout-form-label">
-                    <span>
-                      Complete Full Address<span className="required">*</span>
-                    </span>
-                  </div>
-                  <div className="checkout-input-wrapper">
-                    <div className="checkout-input-icon">
-                      <MapPin size={18} aria-hidden />
+                <div className="checkout-form-field">
+                  <div className="checkout-form-group">
+                    <div className="checkout-form-label">
+                      <span>Landmark</span>
                     </div>
-                    <input
-                      className="checkout-input"
-                      name="address"
-                      placeholder="House No. / Building Name / Street / Area"
-                      required
-                      minLength={14}
-                      type="text"
-                    />
+                    <div
+                      className={`checkout-input-wrapper ${fieldErrors.landmark ? "has-error" : ""}`}
+                    >
+                      <div className="checkout-input-icon">
+                        <MapPin size={18} aria-hidden />
+                      </div>
+                      <input
+                        className="checkout-input"
+                        name="landmark"
+                        placeholder="Nearby Landmark (Optional)"
+                        type="text"
+                        onInput={() => clearFieldError("landmark")}
+                      />
+                    </div>
                   </div>
+                  {fieldErrors.landmark && (
+                    <p className="checkout-field-error" role="alert">
+                      {fieldErrors.landmark}
+                    </p>
+                  )}
                 </div>
 
-                <div className="checkout-form-group">
-                  <div className="checkout-form-label">
-                    <span>Landmark</span>
-                  </div>
-                  <div className="checkout-input-wrapper">
-                    <div className="checkout-input-icon">
-                      <MapPin size={18} aria-hidden />
+                <div className="checkout-form-field">
+                  <div className="checkout-form-group">
+                    <div className="checkout-form-label">
+                      <span>
+                        Pincode<span className="required">*</span>
+                      </span>
                     </div>
-                    <input
-                      className="checkout-input"
-                      name="landmark"
-                      placeholder="Nearby Landmark (Optional)"
-                      minLength={4}
-                      type="text"
-                    />
+                    <div
+                      className={`checkout-input-wrapper ${fieldErrors.pincode ? "has-error" : ""}`}
+                    >
+                      <div className="checkout-input-icon">
+                        <Hash size={18} aria-hidden />
+                      </div>
+                      <input
+                        className="checkout-input"
+                        name="pincode"
+                        placeholder="Enter 6 Digit Pincode"
+                        inputMode="numeric"
+                        maxLength={6}
+                        type="text"
+                        onInput={(e) => {
+                          e.currentTarget.value = digitsOnly(e.currentTarget.value, 6);
+                          clearFieldError("pincode");
+                        }}
+                      />
+                    </div>
                   </div>
+                  {fieldErrors.pincode && (
+                    <p className="checkout-field-error" role="alert">
+                      {fieldErrors.pincode}
+                    </p>
+                  )}
                 </div>
 
-                <div className="checkout-form-group">
-                  <div className="checkout-form-label">
-                    <span>
-                      Pincode<span className="required">*</span>
-                    </span>
-                  </div>
-                  <div className="checkout-input-wrapper">
-                    <div className="checkout-input-icon">
-                      <Hash size={18} aria-hidden />
+                <div className="checkout-form-field">
+                  <div className="checkout-form-group">
+                    <div className="checkout-form-label">
+                      <span>
+                        State<span className="required">*</span>
+                      </span>
                     </div>
-                    <input
-                      className="checkout-input"
-                      name="pincode"
-                      placeholder="Enter 6 Digit Pincode"
-                      required
-                      inputMode="numeric"
-                      maxLength={6}
-                      pattern="[0-9]{6}"
-                      type="text"
-                      onInput={(e) => {
-                        e.currentTarget.value = digitsOnly(e.currentTarget.value, 6);
-                      }}
-                    />
+                    <select
+                      name="state"
+                      className={`checkout-select ${fieldErrors.state ? "has-error" : ""}`}
+                      defaultValue=""
+                      onChange={() => clearFieldError("state")}
+                    >
+                      <option value="">State</option>
+                      {CHECKOUT_STATES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                  {fieldErrors.state && (
+                    <p className="checkout-field-error" role="alert">
+                      {fieldErrors.state}
+                    </p>
+                  )}
                 </div>
 
-                <div className="checkout-form-group">
-                  <div className="checkout-form-label">
-                    <span>
-                      State<span className="required">*</span>
-                    </span>
-                  </div>
-                  <select name="state" className="checkout-select" required defaultValue="">
-                    <option value="">State</option>
-                    {CHECKOUT_STATES.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="checkout-form-group">
-                  <div className="checkout-form-label">
-                    <span>
-                      City<span className="required">*</span>
-                    </span>
-                  </div>
-                  <div className="checkout-input-wrapper">
-                    <div className="checkout-input-icon">
-                      <MapPin size={18} aria-hidden />
+                <div className="checkout-form-field">
+                  <div className="checkout-form-group">
+                    <div className="checkout-form-label">
+                      <span>
+                        City<span className="required">*</span>
+                      </span>
                     </div>
-                    <input
-                      className="checkout-input"
-                      name="city"
-                      placeholder="Enter Your City"
-                      required
-                      type="text"
-                    />
+                    <div
+                      className={`checkout-input-wrapper ${fieldErrors.city ? "has-error" : ""}`}
+                    >
+                      <div className="checkout-input-icon">
+                        <MapPin size={18} aria-hidden />
+                      </div>
+                      <input
+                        className="checkout-input"
+                        name="city"
+                        placeholder="Enter Your City"
+                        type="text"
+                        onInput={() => clearFieldError("city")}
+                      />
+                    </div>
                   </div>
+                  {fieldErrors.city && (
+                    <p className="checkout-field-error" role="alert">
+                      {fieldErrors.city}
+                    </p>
+                  )}
                 </div>
 
                 {error && <div className="checkout-error">{error}</div>}

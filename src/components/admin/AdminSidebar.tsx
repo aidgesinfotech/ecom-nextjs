@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -22,6 +23,7 @@ const links = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/site-config", label: "Site Config", icon: Settings },
+  { href: "/admin/policies", label: "Policies", icon: FileText },
 ];
 
 export default function AdminSidebar() {

@@ -141,7 +141,7 @@ export default function SiteConfigManager({
                 onChange={(e) =>
                   setConfig((c) => ({ ...c, buyNowButtonText: e.target.value }))
                 }
-                placeholder="Click Here - Cash On Delivery Buy Now (Limited)"
+                placeholder="Order Now - Cash On Delivery"
                 required
               />
             </div>

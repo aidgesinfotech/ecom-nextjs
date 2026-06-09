@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
+import { MAIN_NAV_LINKS } from "@/lib/nav-links";
+import { POLICY_NAV_LINKS } from "@/lib/policy-links";
 import "@/styles/footer.css";
 
 export default function Footer() {
@@ -42,7 +44,7 @@ export default function Footer() {
                 unoptimized
               />
             </div>
-            <p className="footer-about">{siteDescription}</p>
+            <p className="footer-about">Upgrade your wardrobe with the latest trends in modern men's wear. Discover stylish, high-quality outfits designed to keep you looking sharp for any occasion.</p>
           </div>
 
           <div className="footer-links">
@@ -52,15 +54,11 @@ export default function Footer() {
               </summary>
               <div className="accordion-content">
                 <ul>
-                  <li>
-                    <Link href="/">Home</Link>
-                  </li>
-                  <li>
-                    <Link href="/catalog">Catalog</Link>
-                  </li>
-                  <li>
-                    <Link href="/contact">Contact</Link>
-                  </li>
+                  {MAIN_NAV_LINKS.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href}>{link.label}</Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </details>
@@ -73,15 +71,11 @@ export default function Footer() {
               </summary>
               <div className="accordion-content">
                 <ul>
-                  <li>
-                    <Link href="/policies/replacement">7 Day Replacement Policy</Link>
-                  </li>
-                  <li>
-                    <Link href="/policies/privacy">Privacy Policy</Link>
-                  </li>
-                  <li>
-                    <Link href="/policies/terms">Terms of Service</Link>
-                  </li>
+                  {POLICY_NAV_LINKS.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href}>{link.label}</Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </details>

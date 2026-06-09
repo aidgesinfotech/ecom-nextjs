@@ -61,6 +61,11 @@ export async function getProductById(
   options?: { fresh?: boolean }
 ): Promise<Product | null> {
   if (options?.fresh) return fetchProductById(id);
+
+  const list = await getProductsCached();
+  const fromList = list.find((p) => p.id === id);
+  if (fromList) return fromList;
+
   return getProductByIdCached(id);
 }
 

@@ -1,6 +1,8 @@
-import ProductDetail from "@/components/ProductDetail";
+import ProductDetailWithCache from "@/components/ProductDetailWithCache";
 import { getProductById } from "@/lib/products";
 import { notFound } from "next/navigation";
+
+export const revalidate = 60;
 
 export default async function ProductPage({
   params,
@@ -15,5 +17,5 @@ export default async function ProductPage({
     console.error("Product page: failed to load product.", err);
   }
   if (!product) notFound();
-  return <ProductDetail product={product} />;
+  return <ProductDetailWithCache product={product} />;
 }

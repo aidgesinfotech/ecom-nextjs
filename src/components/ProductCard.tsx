@@ -2,13 +2,25 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
+import { cacheProduct } from "@/lib/product-cache";
 
 export default function ProductCard({ product }: { product: Product }) {
   const image = product.images[0];
 
+  function primeProduct() {
+    cacheProduct(product);
+  }
+
   return (
     <div className="product-card">
-      <Link className="product-link" href={`/product/${product.id}`}>
+      <Link
+        className="product-link"
+        href={`/product/${product.id}`}
+        prefetch
+        onMouseEnter={primeProduct}
+        onFocus={primeProduct}
+        onClick={primeProduct}
+      >
         <div className="product-image-container group">
           {image && (
             <Image

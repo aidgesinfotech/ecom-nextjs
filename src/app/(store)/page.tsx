@@ -4,6 +4,8 @@ import { getProducts } from "@/lib/products";
 import type { Product } from "@/lib/types";
 import "@/styles/hero.css";
 
+export const revalidate = 60;
+
 export default async function HomePage() {
   let products: Product[] = [];
   try {

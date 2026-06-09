@@ -2,15 +2,51 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { Heart, Menu, Search, X } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { type FormEvent, useEffect, useState } from "react";
+import { Menu, Search, X } from "lucide-react";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
+import { MAIN_NAV_LINKS } from "@/lib/nav-links";
 import "@/styles/header.css";
 
 export default function Header() {
   const { headerLogo, siteName } = useSiteConfig();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (pathname === "/shop" || pathname === "/best-sellers") {
+      setSearchQuery(searchParams.get("q") || "");
+    } else {
+      setSearchQuery("");
+    }
+  }, [pathname, searchParams]);
+
+  function isActive(href: string) {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  function closeMenu() {
+    setMenuOpen(false);
+  }
+
+  function handleSearch(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    closeMenu();
+    setSearchOpen(false);
+    if (q) {
+      router.push(`/shop?q=${encodeURIComponent(q)}`);
+      return;
+    }
+    router.push("/shop");
+  }
 
   return (
     <header className="header">
@@ -22,7 +58,7 @@ export default function Header() {
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
           >
-            <Menu size={24} />
+            <Menu size={22} />
           </button>
 
           <Link href="/" className="header-logo-link" aria-label={`${siteName} Home`}>
@@ -38,46 +74,79 @@ export default function Header() {
             />
           </Link>
 
-          {menuOpen && (
-            <div className="menu-overlay" onClick={() => setMenuOpen(false)} />
-          )}
+          <div className="header-search-wrap hide-mobile">
+            <form className="header-search-form" onSubmit={handleSearch} role="search">
+              <Search size={18} strokeWidth={2} className="header-search-icon" aria-hidden />
+              <input
+                type="search"
+                className="header-search-input"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search products"
+              />
+            </form>
+          </div>
+
+          <button
+            type="button"
+            className="icon-btn header-search-toggle show-mobile"
+            onClick={() => setSearchOpen((open) => !open)}
+            aria-label="Search products"
+            aria-expanded={searchOpen}
+          >
+            <Search size={22} strokeWidth={2} />
+          </button>
+
+          {menuOpen && <div className="menu-overlay" onClick={closeMenu} />}
 
           <nav className={`nav ${menuOpen ? "open" : ""}`}>
             <div className="mobile-nav-header show-mobile">
               <span className="logo-text">MENU</span>
-              <button className="icon-btn" onClick={() => setMenuOpen(false)}>
+              <button className="icon-btn" onClick={closeMenu} aria-label="Close menu">
                 <X size={24} />
               </button>
             </div>
-            <ul className="flex gap-8">
-              <li>
-                <Link href="/" onClick={() => setMenuOpen(false)}>
-                  HOME
-                </Link>
-              </li>
-              <li>
-                <Link href="/catalog" onClick={() => setMenuOpen(false)}>
-                  CATALOG
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" onClick={() => setMenuOpen(false)}>
-                  CONTACT
-                </Link>
-              </li>
+            <ul className="flex gap-8 header-nav-list">
+              {MAIN_NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    onClick={closeMenu}
+                    className={isActive(link.href) ? "active" : ""}
+                  >
+                    {link.label.toUpperCase()}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
-
-          <div className="header-icons">
-            <button className="icon-btn hide-mobile" aria-label="Search">
-              <Search size={24} strokeWidth={2} />
-            </button>
-            <button className="icon-btn hide-mobile" aria-label="Wishlist">
-              <Heart size={24} strokeWidth={2} />
-              <span className="badge">0</span>
-            </button>
-          </div>
         </div>
+
+        {searchOpen && (
+          <div className="container mobile-search-panel show-mobile">
+            <form className="header-search-form" onSubmit={handleSearch} role="search">
+              <Search size={18} strokeWidth={2} className="header-search-icon" aria-hidden />
+              <input
+                type="search"
+                className="header-search-input"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search products"
+                autoFocus
+              />
+              <button
+                type="button"
+                className="mobile-search-close"
+                onClick={() => setSearchOpen(false)}
+                aria-label="Close search"
+              >
+                <X size={18} />
+              </button>
+            </form>
+          </div>
+        )}
       </div>
 
       <div

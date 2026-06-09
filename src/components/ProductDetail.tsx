@@ -7,17 +7,17 @@ import { ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
 import { formatPrice } from "@/lib/format";
-import CheckoutModal from "./CheckoutModal";
-import ProductFAQ from "./ProductFAQ";
-import ProductFeatureStrip from "./ProductFeatureStrip";
-import { InlineSizeChart, SizeChartLink, SizeChartModal } from "./SizeChart";
+import CheckoutModal from "@/components/CheckoutModal";
+import ProductFAQ from "@/components/ProductFAQ";
+import ProductFeatureStrip from "@/components/ProductFeatureStrip";
+import ProductImageCarousel from "@/components/ProductImageCarousel";
+import { InlineSizeChart, SizeChartLink, SizeChartModal } from "@/components/SizeChart";
 import "@/styles/product-page.css";
 
 export default function ProductDetail({ product }: { product: Product }) {
   const { buyNowButtonText } = useSiteConfig();
   const [activeImage, setActiveImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "32");
-  const [quantity, setQuantity] = useState(1);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const [stickyVisible, setStickyVisible] = useState(false);
@@ -37,7 +37,7 @@ export default function ProductDetail({ product }: { product: Product }) {
     <>
       <div className="product-details-page container section-padding">
         <div className="breadcrumb">
-          <Link href="/">HOME</Link> &gt; <Link href="/catalog">PRODUCTS</Link> &gt;{" "}
+          <Link href="/">HOME</Link> &gt; <Link href="/shop">SHOP</Link> &gt;{" "}
           {breadcrumbName.toUpperCase()}
         </div>
 
@@ -56,13 +56,11 @@ export default function ProductDetail({ product }: { product: Product }) {
               ))}
             </div>
             <div className="main-image-container">
-              <Image
-                src={images[activeImage]}
+              <ProductImageCarousel
+                images={images}
                 alt={product.name}
-                width={600}
-                height={720}
-                className="main-image"
-                priority
+                activeIndex={activeImage}
+                onIndexChange={setActiveImage}
               />
             </div>
           </div>
@@ -76,13 +74,13 @@ export default function ProductDetail({ product }: { product: Product }) {
               <span className="price-current">{formatPrice(product.price)}</span>
             </div>
             <p className="product-tax-note">
-              Tax included. Shipping calculated at checkout.
+              Free Shipping &amp; COD Available PAN India
             </p>
             <p className="viewers-count">🔥 23 people viewing this</p>
 
             <div className="size-selector">
               <div className="size-selector-header">
-                <h3>SIZE</h3>
+                <h3>SELECT YOUR SIZE :</h3>
                 <SizeChartLink onClick={() => setSizeChartOpen(true)} />
               </div>
               <div className="size-grid">
@@ -96,26 +94,6 @@ export default function ProductDetail({ product }: { product: Product }) {
                     {size}
                   </button>
                 ))}
-              </div>
-            </div>
-
-            <div className="purchase-controls">
-              <div className="quantity-selector">
-                <button
-                  type="button"
-                  aria-label="Decrease quantity"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                >
-                  −
-                </button>
-                <span>{quantity}</span>
-                <button
-                  type="button"
-                  aria-label="Increase quantity"
-                  onClick={() => setQuantity((q) => q + 1)}
-                >
-                  +
-                </button>
               </div>
             </div>
 
@@ -180,7 +158,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           <ShoppingCart size={18} />
           <span>
             <span className="small">{buyNowButtonText}</span>
-            <span className="block font-bold">{formatPrice(product.price * quantity)}</span>
+            <span className="block font-bold">{formatPrice(product.price)}</span>
           </span>
         </button>
       </div>
@@ -190,7 +168,7 @@ export default function ProductDetail({ product }: { product: Product }) {
       <CheckoutModal
         product={product}
         size={selectedSize}
-        quantity={quantity}
+        quantity={1}
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
       />

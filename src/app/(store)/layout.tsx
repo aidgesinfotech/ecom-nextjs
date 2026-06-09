@@ -1,13 +1,12 @@
+import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import MetaPixel from "@/components/MetaPixel";
 import { SiteConfigProvider } from "@/contexts/SiteConfigContext";
-import { ensureAppReady } from "@/lib/db-init";
 import { DEFAULT_SITE_CONFIG } from "@/lib/site-config-defaults";
 import { getPublicSiteConfig } from "@/lib/site-config";
 
-/** Runtime-only: Vercel build cannot reach Hostinger MySQL */
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 export default async function StoreLayout({
   children,
@@ -25,7 +24,6 @@ export default async function StoreLayout({
   };
 
   try {
-    await ensureAppReady();
     config = await getPublicSiteConfig();
   } catch (err) {
     console.error("Store layout: DB unavailable, using defaults.", err);
@@ -34,7 +32,9 @@ export default async function StoreLayout({
   return (
     <SiteConfigProvider config={config}>
       {config.metaPixelId ? <MetaPixel pixelId={config.metaPixelId} /> : null}
-      <Header />
+      <Suspense fallback={null}>
+        <Header />
+      </Suspense>
       <main style={{ flex: 1 }}>{children}</main>
       <Footer />
     </SiteConfigProvider>

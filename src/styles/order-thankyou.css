@@ -2,9 +2,11 @@
 .checkout-modal.thankyou-mode {
   max-width: 920px;
   width: 100%;
-  max-height: 95vh;
-  border-radius: 12px;
+  max-height: calc(100vh - 32px);
+  border-radius: 20px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .checkout-modal.thankyou-mode .checkout-modal-header {
@@ -13,6 +15,17 @@
 
 .checkout-modal.thankyou-mode .checkout-modal-content {
   padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.checkout-modal.thankyou-mode .checkout-modal-content::-webkit-scrollbar {
+  display: none;
 }
 
 .order-thankyou {
@@ -357,9 +370,9 @@
 @media (max-width: 768px) {
   .checkout-modal.thankyou-mode {
     max-width: 100%;
-    max-height: 100vh;
-    border-radius: 0;
-    height: 100vh;
+    max-height: calc(100vh - 24px) !important;
+    height: auto !important;
+    border-radius: 24px !important;
   }
 
   .order-thankyou-grid {

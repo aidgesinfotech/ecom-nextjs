@@ -4,7 +4,7 @@ import "@/styles/site-theme.css";
 import { DEFAULT_SITE_CONFIG } from "@/lib/site-config-defaults";
 import { getPublicSiteConfig } from "@/lib/site-config";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 export async function generateMetadata(): Promise<Metadata> {
   try {

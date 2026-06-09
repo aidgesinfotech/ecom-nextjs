@@ -33,7 +33,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   headerLogo: LOGO_URL,
   footerLogo: LOGO_URL,
   favicon: "/aikvis-logo.png",
-  buyNowButtonText: "Click Here - Cash On Delivery Buy Now (Limited)",
+  buyNowButtonText: "Order Now - Cash On Delivery",
   metaPixelId: "",
   metaCapiAccessToken: "",
 };

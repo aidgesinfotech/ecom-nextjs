@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { shouldSkipDatabase } from "./db-build";
 import pool from "./db";
 import { SEED_PRODUCTS } from "./seed-products";
+import { seedDefaultPolicies } from "./policies";
 import { DEFAULT_SITE_CONFIG, SITE_SETTING_KEYS } from "./site-config-defaults";
 import type { RowDataPacket } from "mysql2";
 
@@ -91,6 +92,7 @@ async function ensureSchema() {
   }
 
   await seedDefaultSiteConfigOnce();
+  await seedDefaultPolicies();
 
   const username = process.env.ADMIN_USERNAME || "admin";
   const password = process.env.ADMIN_PASSWORD || "admin123";

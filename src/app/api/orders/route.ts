@@ -76,11 +76,17 @@ export async function POST(req: NextRequest) {
     }
 
     if (!/^[0-9]{10}$/.test(String(body.phone))) {
-      return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
+      return NextResponse.json(
+        { error: "please enter full 10 digit mobile no." },
+        { status: 400 }
+      );
     }
 
     if (!/^[0-9]{6}$/.test(String(body.pincode))) {
-      return NextResponse.json({ error: "Please enter a valid 6 digit pincode." }, { status: 400 });
+      return NextResponse.json(
+        { error: "please enter valid 6 digit area pincode" },
+        { status: 400 }
+      );
     }
 
     const streetAddress = String(body.address).trim();

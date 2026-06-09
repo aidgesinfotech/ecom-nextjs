@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "build:css": "node scripts/build-css.js"
   },
   "dependencies": {

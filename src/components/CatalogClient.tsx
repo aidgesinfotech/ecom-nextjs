@@ -1,12 +1,25 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { Product } from "@/lib/types";
 import ProductGrid from "./ProductGrid";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "newest";
 
-export default function CatalogClient({ products }: { products: Product[] }) {
+export default function CatalogClient({
+  products,
+  title = "Shop",
+  breadcrumb = "Home > Shop",
+  featuredOnly = false,
+}: {
+  products: Product[];
+  title?: string;
+  breadcrumb?: string;
+  featuredOnly?: boolean;
+}) {
+  const searchParams = useSearchParams();
+  const searchQuery = (searchParams.get("q") || "").trim().toLowerCase();
   const [sortBy, setSortBy] = useState<SortOption>("featured");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [inStock, setInStock] = useState(true);
@@ -14,7 +27,11 @@ export default function CatalogClient({ products }: { products: Product[] }) {
   const [maxPrice, setMaxPrice] = useState(5000);
 
   const filtered = useMemo(() => {
-    let list = products.filter((p) => {
+    let list = (featuredOnly ? products.filter((p) => p.featured) : products).filter((p) => {
+      if (searchQuery) {
+        const haystack = `${p.name} ${p.description || ""} ${p.category || ""}`.toLowerCase();
+        if (!haystack.includes(searchQuery)) return false;
+      }
       const isInStock = p.stock_status === "In Stock";
       if (isInStock && !inStock) return false;
       if (!isInStock && !outStock) return false;
@@ -40,14 +57,14 @@ export default function CatalogClient({ products }: { products: Product[] }) {
         break;
     }
     return list;
-  }, [products, sortBy, inStock, outStock, maxPrice]);
+  }, [products, sortBy, inStock, outStock, maxPrice, featuredOnly, searchQuery]);
 
   const inStockCount = products.filter((p) => p.stock_status === "In Stock").length;
   const outStockCount = products.length - inStockCount;
 
   return (
     <div className="catalog-page container section-padding">
-      <div className="breadcrumb">Home &gt; Products</div>
+      <div className="breadcrumb">{breadcrumb.replace(/ > /g, " \u203a ")}</div>
 
       <button
         className="mobile-filter-toggle"
@@ -133,7 +150,7 @@ export default function CatalogClient({ products }: { products: Product[] }) {
         <main className="catalog-main">
           <div className="catalog-header flex justify-between items-center mb-4">
             <h1 className="page-title">
-              Products <span className="count">{filtered.length}</span>
+              {title} <span className="count">{filtered.length}</span>
             </h1>
             <div className="sorting flex gap-4 items-center hide-mobile">
               <span>Sort by:</span>
