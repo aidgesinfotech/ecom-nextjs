@@ -4,15 +4,17 @@ import { getAdminSession } from "@/lib/auth";
 import { ensureAppReady } from "@/lib/db-init";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export default async function AdminPanelLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await ensureAppReady();
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
+
+  await ensureAppReady();
 
   return <AdminShell>{children}</AdminShell>;
 }

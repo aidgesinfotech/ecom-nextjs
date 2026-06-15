@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import pool from "@/lib/db";
-import { COOKIE_NAME, signAdminToken } from "@/lib/auth";
+import { setAdminSessionCookie, signAdminToken } from "@/lib/auth";
 import { ensureAppReady } from "@/lib/db-init";
 import type { RowDataPacket } from "mysql2";
 
@@ -23,16 +23,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const token = signAdminToken({ id: admin.id, username: admin.username });
-    const res = NextResponse.json({ success: true });
-    res.cookies.set(COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
+    const token = signAdminToken({
+      id: Number(admin.id),
+      username: String(admin.username),
     });
-    return res;
+    await setAdminSessionCookie(token);
+    return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Login failed" }, { status: 500 });
   }

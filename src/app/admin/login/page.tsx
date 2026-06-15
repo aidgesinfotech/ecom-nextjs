@@ -4,12 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { Eye, EyeOff, Lock, ShieldCheck, User } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { LOGO_URL } from "@/lib/brand";
 import AdminButton from "@/components/admin/AdminButton";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +21,7 @@ export default function AdminLoginPage() {
     const res = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         username: fd.get("username"),
         password: fd.get("password"),
@@ -31,8 +30,8 @@ export default function AdminLoginPage() {
 
     setLoading(false);
     if (res.ok) {
-      router.push("/admin");
-      router.refresh();
+      window.location.href = "/admin";
+      return;
     } else {
       const data = await res.json();
       setError(data.error || "Invalid username or password");

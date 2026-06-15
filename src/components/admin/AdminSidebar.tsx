@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   FileText,
   LayoutDashboard,
@@ -28,7 +28,6 @@ const links = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -45,9 +44,8 @@ export default function AdminSidebar() {
 
   async function logout() {
     setLoggingOut(true);
-    await fetch("/api/admin/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
+    await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
+    window.location.href = "/admin/login";
   }
 
   return (
@@ -97,7 +95,7 @@ export default function AdminSidebar() {
               <Link
                 key={link.href}
                 href={link.href}
-                prefetch
+                prefetch={false}
                 scroll
                 className={active ? "active" : ""}
                 onClick={() => setMobileOpen(false)}
