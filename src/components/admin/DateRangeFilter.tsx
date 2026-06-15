@@ -1,6 +1,7 @@
 "use client";
 
 import type { DatePeriod } from "@/lib/date-range";
+import AdminButton from "./AdminButton";
 
 const PERIODS: { id: DatePeriod; label: string }[] = [
   { id: "today", label: "Today" },
@@ -69,14 +70,15 @@ export default function DateRangeFilter({
               onChange={(e) => onCustomToChange(e.target.value)}
             />
           </div>
-          <button
+          <AdminButton
             type="button"
-            className="admin-btn admin-btn-primary"
             onClick={onApply}
-            disabled={loading || !customFrom || !customTo}
+            loading={loading}
+            loadingLabel="Applying..."
+            disabled={!customFrom || !customTo}
           >
             Apply Range
-          </button>
+          </AdminButton>
         </div>
       )}
     </div>

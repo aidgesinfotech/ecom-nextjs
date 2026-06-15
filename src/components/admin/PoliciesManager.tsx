@@ -67,7 +67,7 @@ export default function PoliciesManager({ initialPolicies }: { initialPolicies: 
         ))}
 
         <div className="admin-form-actions">
-          <AdminButton type="submit" loading={saving}>
+          <AdminButton type="submit" loading={saving} loadingLabel="Saving...">
             Save All Policies
           </AdminButton>
         </div>

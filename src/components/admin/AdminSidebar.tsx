@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   FileText,
   LayoutDashboard,
@@ -28,6 +28,7 @@ const links = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -41,6 +42,12 @@ export default function AdminSidebar() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
+
+  function handleNav(href: string, active: boolean) {
+    setMobileOpen(false);
+    if (active || pathname === href) return;
+    router.push(href);
+  }
 
   async function logout() {
     setLoggingOut(true);
@@ -98,7 +105,10 @@ export default function AdminSidebar() {
                 prefetch={false}
                 scroll
                 className={active ? "active" : ""}
-                onClick={() => setMobileOpen(false)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNav(link.href, active);
+                }}
               >
                 <Icon size={18} />
                 {link.label}
@@ -116,6 +126,7 @@ export default function AdminSidebar() {
             variant="outline"
             className="admin-logout-btn"
             loading={loggingOut}
+            loadingLabel="Logging out..."
             onClick={logout}
           >
             <LogOut size={16} />

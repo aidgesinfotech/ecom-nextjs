@@ -121,10 +121,15 @@ export default function ImageUploader({
 
   const isUploading = items.some((i) => i.uploading);
   const atMax = maxImages ? items.filter((i) => i.url).length >= maxImages : false;
+  const onUploadingChangeRef = useRef(onUploadingChange);
 
   useEffect(() => {
-    onUploadingChange?.(isUploading);
-  }, [isUploading, onUploadingChange]);
+    onUploadingChangeRef.current = onUploadingChange;
+  }, [onUploadingChange]);
+
+  useEffect(() => {
+    onUploadingChangeRef.current?.(isUploading);
+  }, [isUploading]);
 
   return (
     <div className="image-uploader">

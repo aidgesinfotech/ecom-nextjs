@@ -34,7 +34,12 @@ export default function ConfirmDialog({
           <AdminButton variant="outline" onClick={onCancel} disabled={loading}>
             Cancel
           </AdminButton>
-          <AdminButton variant="danger" loading={loading} onClick={onConfirm}>
+          <AdminButton
+            variant="danger"
+            loading={loading}
+            loadingLabel="Deleting..."
+            onClick={onConfirm}
+          >
             {confirmLabel}
           </AdminButton>
         </div>

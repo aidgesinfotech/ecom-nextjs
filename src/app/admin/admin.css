@@ -151,60 +151,111 @@
 }
 
 .admin-login-form {
+  display: flex;
+  flex-direction: column;
   gap: 1.25rem;
 }
 
-.admin-input-group label {
-  font-size: 0.85rem;
+.admin-login-form .admin-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.admin-login-form .admin-input-group label {
+  font-size: 0.875rem;
   font-weight: 600;
   color: #334155;
   display: block;
-  margin-bottom: 0.4rem;
+  margin: 0;
 }
 
-.admin-input-wrap {
+.admin-login-form .admin-input-wrap {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
-.admin-input-icon {
+.admin-login-form .admin-input-icon {
   position: absolute;
-  left: 0.85rem;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   color: #94a3b8;
   pointer-events: none;
+  flex-shrink: 0;
 }
 
-.admin-input-wrap input {
+.admin-login-form .admin-login-input {
   width: 100%;
-  padding: 0.75rem 2.75rem 0.75rem 2.75rem;
+  height: 48px;
+  box-sizing: border-box;
+  padding: 0 1rem 0 2.75rem;
   border: 1.5px solid var(--admin-border);
-  border-radius: 10px;
+  border-radius: 12px;
+  font-family: inherit;
   font-size: 0.95rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  background: #fafbfc;
+  line-height: 1.5;
+  color: var(--admin-text);
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.admin-input-wrap input:focus {
+.admin-login-form .admin-input-wrap--password .admin-login-input {
+  padding-right: 2.85rem;
+}
+
+.admin-login-form .admin-login-input::placeholder {
+  color: #94a3b8;
+}
+
+.admin-login-form .admin-login-input:hover {
+  border-color: #cbd5e1;
+}
+
+.admin-login-form .admin-login-input:focus {
   outline: none;
   border-color: var(--admin-brand);
-  box-shadow: 0 0 0 3px rgba(26, 74, 142, 0.12);
+  box-shadow: 0 0 0 4px rgba(26, 74, 142, 0.12);
   background: #fff;
 }
 
-.admin-input-toggle {
+.admin-login-form .admin-login-input:-webkit-autofill,
+.admin-login-form .admin-login-input:-webkit-autofill:hover,
+.admin-login-form .admin-login-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--admin-text);
+  box-shadow: 0 0 0 1000px #fff inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.admin-login-form .admin-input-toggle {
   position: absolute;
-  right: 0.75rem;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #94a3b8;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.35rem;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: color 0.2s, background-color 0.2s;
 }
 
-.admin-input-toggle:hover {
-  color: #64748b;
+.admin-login-form .admin-input-toggle:hover {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.admin-login-form .admin-input-toggle:focus-visible {
+  outline: 2px solid var(--admin-brand);
+  outline-offset: 2px;
 }
 
 .admin-login-error {
@@ -264,7 +315,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  z-index: 70;
+  z-index: 200;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -309,7 +360,7 @@
   position: fixed;
   top: 0.85rem;
   left: 0.85rem;
-  z-index: 80;
+  z-index: 210;
   width: 42px;
   height: 42px;
   border: 1px solid var(--admin-border);
@@ -326,7 +377,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 65;
+  z-index: 190;
   background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(2px);
   border: none;
@@ -1014,8 +1065,18 @@
   animation: admin-spin 0.7s linear infinite;
 }
 
+.admin-btn.is-loading {
+  pointer-events: none;
+}
+
 .admin-btn.is-loading .admin-btn-label {
-  opacity: 0.85;
+  opacity: 1;
+}
+
+.admin-login-form .admin-login-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #f1f5f9;
 }
 
 @keyframes admin-spin {
@@ -1660,6 +1721,8 @@
   justify-content: center;
   width: 42px;
   height: 42px;
+  min-width: 42px;
+  padding: 0 !important;
   border: none;
   border-radius: 10px;
   background: var(--admin-brand);
@@ -1669,7 +1732,11 @@
   flex-shrink: 0;
 }
 
-.orders-search-btn:hover {
+.orders-search-btn .admin-btn-label {
+  display: none;
+}
+
+.orders-search-btn:hover:not(:disabled) {
   background: var(--admin-brand-dark);
   box-shadow: 0 4px 12px rgba(26, 74, 142, 0.3);
 }
@@ -2155,6 +2222,11 @@
   .admin-login-card {
     padding: 1.5rem;
     border-radius: 16px;
+  }
+
+  .admin-login-form .admin-login-input {
+    height: 46px;
+    font-size: 16px;
   }
 
   .image-uploader-dropzone {

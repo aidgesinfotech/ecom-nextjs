@@ -42,6 +42,7 @@ export default function OrdersManager() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState("all");
@@ -70,15 +71,19 @@ export default function OrdersManager() {
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/orders/manage?${buildParams()}`);
-    if (res.ok) {
-      const data = await res.json();
-      setSummary(data.summary);
-      setOrders(data.orders);
-      setTotalPages(data.totalPages);
-      setTotal(data.total);
+    try {
+      const res = await fetch(`/api/orders/manage?${buildParams()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSummary(data.summary);
+        setOrders(data.orders);
+        setTotalPages(data.totalPages);
+        setTotal(data.total);
+      }
+    } finally {
+      setLoading(false);
+      setSearching(false);
     }
-    setLoading(false);
   }, [buildParams]);
 
   useEffect(() => {
@@ -88,6 +93,7 @@ export default function OrdersManager() {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setPage(1);
+    setSearching(true);
     setSearch(searchInput.trim());
   }
 
@@ -246,11 +252,22 @@ export default function OrdersManager() {
             className="orders-date-input"
             title="To date"
           />
-          <button type="submit" className="orders-search-btn" aria-label="Search">
+          <AdminButton
+            type="submit"
+            className="orders-search-btn"
+            loading={searching || loading}
+            loadingLabel=""
+            aria-label="Search"
+          >
             <Search size={18} />
-          </button>
+          </AdminButton>
         </form>
-        <AdminButton variant="outline" onClick={exportCsv} loading={exporting}>
+        <AdminButton
+          variant="outline"
+          onClick={exportCsv}
+          loading={exporting}
+          loadingLabel="Exporting..."
+        >
           <Download size={16} />
           Export CSV
         </AdminButton>
@@ -354,23 +371,27 @@ export default function OrdersManager() {
                 Showing {(page - 1) * 20 + 1}–{Math.min(page * 20, total)} of {total} orders
               </span>
               <div className="orders-pagination-btns">
-                <button
-                  type="button"
-                  disabled={page <= 1 || loading}
+                <AdminButton
+                  variant="outline"
+                  loading={loading}
+                  loadingLabel="Loading..."
+                  disabled={page <= 1}
                   onClick={() => setPage((p) => p - 1)}
                 >
                   Previous
-                </button>
+                </AdminButton>
                 <span>
                   Page {page} of {totalPages}
                 </span>
-                <button
-                  type="button"
-                  disabled={page >= totalPages || loading}
+                <AdminButton
+                  variant="outline"
+                  loading={loading}
+                  loadingLabel="Loading..."
+                  disabled={page >= totalPages}
                   onClick={() => setPage((p) => p + 1)}
                 >
                   Next
-                </button>
+                </AdminButton>
               </div>
             </div>
           </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SiteConfig } from "@/lib/site-config";
 import AdminButton from "./AdminButton";
@@ -23,6 +23,18 @@ export default function SiteConfigManager({
   });
 
   const anyUploading = uploading.header || uploading.footer || uploading.favicon;
+
+  const setHeaderUploading = useCallback((v: boolean) => {
+    setUploading((u) => (u.header === v ? u : { ...u, header: v }));
+  }, []);
+
+  const setFooterUploading = useCallback((v: boolean) => {
+    setUploading((u) => (u.footer === v ? u : { ...u, footer: v }));
+  }, []);
+
+  const setFaviconUploading = useCallback((v: boolean) => {
+    setUploading((u) => (u.favicon === v ? u : { ...u, favicon: v }));
+  }, []);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -102,7 +114,7 @@ export default function SiteConfigManager({
                 onChange={(urls) =>
                   setConfig((c) => ({ ...c, headerLogo: urls[0] || "" }))
                 }
-                onUploadingChange={(v) => setUploading((u) => ({ ...u, header: v }))}
+                onUploadingChange={setHeaderUploading}
               />
             </div>
 
@@ -114,7 +126,7 @@ export default function SiteConfigManager({
                 onChange={(urls) =>
                   setConfig((c) => ({ ...c, footerLogo: urls[0] || "" }))
                 }
-                onUploadingChange={(v) => setUploading((u) => ({ ...u, footer: v }))}
+                onUploadingChange={setFooterUploading}
               />
             </div>
 
@@ -124,7 +136,7 @@ export default function SiteConfigManager({
                 maxImages={1}
                 value={config.favicon ? [config.favicon] : []}
                 onChange={(urls) => setConfig((c) => ({ ...c, favicon: urls[0] || "" }))}
-                onUploadingChange={(v) => setUploading((u) => ({ ...u, favicon: v }))}
+                onUploadingChange={setFaviconUploading}
               />
             </div>
           </div>
@@ -182,7 +194,12 @@ export default function SiteConfigManager({
         </section>
 
         <div className="admin-form-actions">
-          <AdminButton type="submit" loading={saving} disabled={anyUploading}>
+          <AdminButton
+            type="submit"
+            loading={saving}
+            loadingLabel="Saving..."
+            disabled={anyUploading}
+          >
             Save Site Configuration
           </AdminButton>
         </div>

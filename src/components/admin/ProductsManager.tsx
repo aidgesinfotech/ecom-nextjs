@@ -161,13 +161,18 @@ function ProductForm({
         <AdminButton
           type="submit"
           loading={saving || uploadingImages}
+          loadingLabel={
+            uploadingImages
+              ? "Uploading images…"
+              : saving
+                ? editing
+                  ? "Updating..."
+                  : "Adding..."
+                : undefined
+          }
           form="product-form"
         >
-          {uploadingImages
-            ? "Uploading images…"
-            : editing
-              ? "Update Product"
-              : "Add Product"}
+          {editing ? "Update Product" : "Add Product"}
         </AdminButton>
       </div>
     </form>
@@ -381,6 +386,7 @@ export default function ProductsManager({
                       variant="ghost"
                       className="admin-btn-icon admin-btn-icon-danger"
                       loading={deletingId === p.id}
+                      loadingLabel=""
                       onClick={() => setDeleteTarget(p)}
                       title="Delete"
                     >

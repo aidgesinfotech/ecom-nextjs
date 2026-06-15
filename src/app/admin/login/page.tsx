@@ -18,23 +18,28 @@ export default function AdminLoginPage() {
     setError("");
     const fd = new FormData(e.currentTarget);
 
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        username: fd.get("username"),
-        password: fd.get("password"),
-      }),
-    });
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          username: fd.get("username"),
+          password: fd.get("password"),
+        }),
+      });
 
-    setLoading(false);
-    if (res.ok) {
-      window.location.href = "/admin";
-      return;
-    } else {
+      if (res.ok) {
+        window.location.href = "/admin";
+        return;
+      }
+
       const data = await res.json();
       setError(data.error || "Invalid username or password");
+      setLoading(false);
+    } catch {
+      setError("Login failed. Please try again.");
+      setLoading(false);
     }
   }
 
@@ -70,38 +75,47 @@ export default function AdminLoginPage() {
             <p>Sign in to your admin account</p>
           </div>
 
-          <form className="admin-form admin-login-form" onSubmit={onSubmit}>
+          <form className="admin-login-form" onSubmit={onSubmit} autoComplete="off">
             <div className="admin-input-group">
               <label htmlFor="username">Username</label>
               <div className="admin-input-wrap">
-                <User size={18} className="admin-input-icon" />
+                <User size={18} className="admin-input-icon" aria-hidden />
                 <input
                   id="username"
                   name="username"
+                  type="text"
+                  className="admin-login-input"
                   required
-                  autoComplete="username"
+                  autoComplete="off"
+                  readOnly
+                  onFocus={(e) => e.currentTarget.removeAttribute("readonly")}
                   placeholder="Enter username"
-                  defaultValue="admin"
+                  disabled={loading}
                 />
               </div>
             </div>
 
             <div className="admin-input-group">
               <label htmlFor="password">Password</label>
-              <div className="admin-input-wrap">
-                <Lock size={18} className="admin-input-icon" />
+              <div className="admin-input-wrap admin-input-wrap--password">
+                <Lock size={18} className="admin-input-icon" aria-hidden />
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
+                  className="admin-login-input"
                   required
-                  autoComplete="current-password"
+                  autoComplete="new-password"
+                  readOnly
+                  onFocus={(e) => e.currentTarget.removeAttribute("readonly")}
                   placeholder="Enter password"
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   className="admin-input-toggle"
                   onClick={() => setShowPassword((v) => !v)}
+                  disabled={loading}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -115,7 +129,12 @@ export default function AdminLoginPage() {
               </div>
             )}
 
-            <AdminButton type="submit" loading={loading} className="admin-login-submit">
+            <AdminButton
+              type="submit"
+              loading={loading}
+              loadingLabel="Signing in..."
+              className="admin-login-submit"
+            >
               Sign In to Dashboard
             </AdminButton>
           </form>

@@ -111,7 +111,7 @@ export default function DashboardManager() {
       <div className="admin-card admin-card-table">
         <div className="admin-card-head">
           <h2>Orders</h2>
-          <AdminButton variant="outline" onClick={fetchData} loading={loading}>
+          <AdminButton variant="outline" onClick={fetchData} loading={loading} loadingLabel="Refreshing...">
             Refresh
           </AdminButton>
         </div>
