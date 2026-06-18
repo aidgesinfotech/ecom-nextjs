@@ -1,18 +1,25 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { ChevronDown, Ruler } from "lucide-react";
 
-const ROWS = [
-  { size: "28", waist: "28", hip: "38", length: "40" },
-  { size: "30", waist: "30", hip: "40", length: "40" },
-  { size: "32", waist: "32", hip: "42", length: "41" },
-  { size: "34", waist: "34", hip: "44", length: "41" },
-  { size: "36", waist: "36", hip: "46", length: "42" },
-  { size: "38", waist: "38", hip: "48", length: "42" },
-  { size: "40", waist: "40", hip: "50", length: "43" },
-  { size: "42", waist: "42", hip: "52", length: "43" },
-];
+const SIZE_CHART_IMAGE = "/size-chart.png";
+
+function SizeChartImage({ className = "" }: { className?: string }) {
+  return (
+    <div className={`size-chart-image-wrap ${className}`.trim()}>
+      <Image
+        src={SIZE_CHART_IMAGE}
+        alt="Size chart with length, chest, shoulder, and sleeve measurements in inches"
+        width={900}
+        height={500}
+        className="size-chart-image"
+        unoptimized
+      />
+    </div>
+  );
+}
 
 export function SizeChartLink({ onClick }: { onClick: () => void }) {
   return (
@@ -39,7 +46,7 @@ export function InlineSizeChart() {
       </button>
       <div className={`inline-sc-content-container ${open ? "open" : ""}`}>
         <div className="inline-sc-content">
-          <SizeChartTable />
+          <SizeChartImage />
         </div>
       </div>
     </div>
@@ -68,64 +75,9 @@ export function SizeChartModal({
         </div>
         <div className="sc-body">
           <p className="sc-unit-note">All measurements are in inches.</p>
-          <SizeChartTable modal />
+          <SizeChartImage className="size-chart-image-modal" />
         </div>
       </div>
-    </div>
-  );
-}
-
-function SizeChartTable({ modal }: { modal?: boolean }) {
-  if (modal) {
-    return (
-      <div className="sc-table-wrap">
-        <table className="sc-table">
-          <thead>
-            <tr>
-              <th>SIZE</th>
-              <th>WAIST</th>
-              <th>HIP</th>
-              <th>LENGTH</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ROWS.map((r) => (
-              <tr key={r.size}>
-                <td>{r.size}</td>
-                <td>{r.waist}</td>
-                <td>{r.hip}</td>
-                <td>{r.length}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
-
-  return (
-    <div className="size-chart-section">
-      <div className="size-chart-header">SIZE CHART</div>
-      <table className="size-chart-table">
-        <thead>
-          <tr>
-            <th>SIZE</th>
-            <th>WAIST</th>
-            <th>HIP</th>
-            <th>LENGTH</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ROWS.map((r) => (
-            <tr key={r.size}>
-              <td>{r.size}</td>
-              <td>{r.waist}</td>
-              <td>{r.hip}</td>
-              <td>{r.length}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

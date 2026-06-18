@@ -315,6 +315,23 @@
   padding: 0;
 }
 
+.size-chart-image-wrap {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.size-chart-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.size-chart-image-modal {
+  max-width: 100%;
+}
+
 .product-details-page .product-info-panel .size-selector {
   margin: 0.2rem 0 0.35rem;
 }

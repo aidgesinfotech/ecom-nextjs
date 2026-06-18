@@ -16,14 +16,14 @@ export default async function HomePage() {
 
   return (
     <div className="home-page">
-      <HomeHero />
-
       <section className="section-padding container">
         <div className="text-center mb-8">
           <h2 className="section-title">All Products List</h2>
         </div>
         <HomeProducts initialProducts={products} />
       </section>
+
+      <HomeHero />
     </div>
   );
 }
