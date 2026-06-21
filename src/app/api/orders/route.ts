@@ -75,10 +75,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!/^[0-9]{10}$/.test(String(body.phone))) {
+    const phone = String(body.phone);
+
+    if (!/^[0-9]{10}$/.test(phone)) {
       return NextResponse.json(
         { error: "please enter full 10 digit mobile no." },
         { status: 400 }
+      );
+    }
+
+    const [existingPhoneRows] = await pool.query(
+      "SELECT id FROM orders WHERE phone = ? LIMIT 1",
+      [phone]
+    );
+    if ((existingPhoneRows as { id: number }[]).length > 0) {
+      return NextResponse.json(
+        { error: "An order has already been placed with this mobile number." },
+        { status: 409 }
       );
     }
 
@@ -129,7 +142,7 @@ export async function POST(req: NextRequest) {
         body.size || "—",
         body.quantity || 1,
         String(body.customer_name).trim(),
-        String(body.phone),
+        phone,
         body.email || null,
         fullAddress,
         String(body.city).trim(),
@@ -146,7 +159,7 @@ export async function POST(req: NextRequest) {
       orderId: insertId,
       total: Number(body.total),
       customerName: String(body.customer_name).trim(),
-      phone: String(body.phone),
+      phone,
       email: body.email || null,
       productName: String(body.product_name),
     });
