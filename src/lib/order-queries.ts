@@ -104,13 +104,7 @@ export interface OrderListFilters {
   dateTo?: string;
 }
 
-export async function getOrdersPaginated(
-  filters: OrderListFilters
-): Promise<OrdersListResult> {
-  const page = Math.max(1, filters.page || 1);
-  const limit = Math.min(100, Math.max(10, filters.limit || 20));
-  const offset = (page - 1) * limit;
-
+function buildOrderWhereClause(filters: Omit<OrderListFilters, "page" | "limit">) {
   const conditions: string[] = ["1=1"];
   const params: (string | number)[] = [];
 
@@ -133,9 +127,7 @@ export async function getOrdersPaginated(
   }
 
   if (filters.dateFrom) {
-    const from = toMysqlDatetime(
-      new Date(filters.dateFrom + "T00:00:00+05:30")
-    );
+    const from = toMysqlDatetime(new Date(filters.dateFrom + "T00:00:00+05:30"));
     conditions.push("created_at >= ?");
     params.push(from);
   }
@@ -146,7 +138,16 @@ export async function getOrdersPaginated(
     params.push(to);
   }
 
-  const where = conditions.join(" AND ");
+  return { where: conditions.join(" AND "), params };
+}
+
+export async function getOrdersPaginated(
+  filters: OrderListFilters
+): Promise<OrdersListResult> {
+  const page = Math.max(1, filters.page || 1);
+  const limit = Math.min(100, Math.max(10, filters.limit || 20));
+  const offset = (page - 1) * limit;
+  const { where, params } = buildOrderWhereClause(filters);
 
   const [countRows] = await pool.query<RowDataPacket[]>(
     `SELECT COUNT(*) as c FROM orders WHERE ${where}`,
@@ -171,6 +172,21 @@ export async function getOrdersPaginated(
 export async function getAllOrdersForExport(
   filters: Omit<OrderListFilters, "page" | "limit">
 ): Promise<OrderRow[]> {
-  const result = await getOrdersPaginated({ ...filters, page: 1, limit: 10000 });
-  return result.orders;
+  const { where, params } = buildOrderWhereClause(filters);
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT * FROM orders WHERE ${where} ORDER BY created_at DESC`,
+    params
+  );
+  return rows.map(mapOrder);
+}
+
+export async function countOrdersMatching(
+  filters: Omit<OrderListFilters, "page" | "limit">
+): Promise<number> {
+  const { where, params } = buildOrderWhereClause(filters);
+  const [countRows] = await pool.query<RowDataPacket[]>(
+    `SELECT COUNT(*) as c FROM orders WHERE ${where}`,
+    params
+  );
+  return Number(countRows[0]?.c ?? 0);
 }

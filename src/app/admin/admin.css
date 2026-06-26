@@ -547,7 +547,37 @@
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 0.8rem;
+}
+
+.admin-header-user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  line-height: 1.2;
+}
+
+.admin-header-user-meta strong {
+  color: var(--admin-text);
+}
+
+.admin-header-master-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #059669;
+}
+
+.admin-master-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.admin-tag-you {
+  margin-left: 0.5rem;
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 /* ─── Stats & Cards ─── */
@@ -1653,6 +1683,14 @@
   flex-wrap: wrap;
   margin-bottom: 1.25rem;
   padding: 1rem 1.25rem !important;
+}
+
+.orders-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .orders-search-form {

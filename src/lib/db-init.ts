@@ -14,6 +14,7 @@ async function ensureSchema() {
       id INT AUTO_INCREMENT PRIMARY KEY,
       username VARCHAR(100) NOT NULL UNIQUE,
       password_hash VARCHAR(255) NOT NULL,
+      is_master TINYINT(1) NOT NULL DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -94,15 +95,34 @@ async function ensureSchema() {
   await seedDefaultSiteConfigOnce();
   await seedDefaultPolicies();
 
+  try {
+    await pool.query(
+      "ALTER TABLE admins ADD COLUMN is_master TINYINT(1) NOT NULL DEFAULT 0"
+    );
+  } catch {
+    /* column already exists */
+  }
+
   const username = process.env.ADMIN_USERNAME || "admin";
   const password = process.env.ADMIN_PASSWORD || "admin123";
   const hash = await bcrypt.hash(password, 10);
 
   await pool.query(
-    `INSERT INTO admins (username, password_hash) VALUES (?, ?)
+    `INSERT INTO admins (username, password_hash, is_master) VALUES (?, ?, 1)
      ON DUPLICATE KEY UPDATE username = username`,
     [username, hash]
   );
+
+  await pool.query(`UPDATE admins SET is_master = 1 WHERE username = ?`, [username]);
+
+  const [masterRows] = await pool.query<RowDataPacket[]>(
+    "SELECT COUNT(*) as count FROM admins WHERE is_master = 1"
+  );
+  if (Number(masterRows[0]?.count ?? 0) === 0) {
+    await pool.query(
+      "UPDATE admins SET is_master = 1 WHERE id = (SELECT id FROM (SELECT MIN(id) as id FROM admins) t)"
+    );
+  }
 }
 
 async function seedDefaultSiteConfigOnce() {

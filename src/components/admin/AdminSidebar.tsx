@@ -12,13 +12,14 @@ import {
   Settings,
   ShoppingBag,
   Store,
+  Users,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LOGO_URL } from "@/lib/brand";
 import AdminButton from "./AdminButton";
 
-const links = [
+const baseLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/products", label: "Products", icon: Package },
@@ -26,7 +27,9 @@ const links = [
   { href: "/admin/policies", label: "Policies", icon: FileText },
 ];
 
-export default function AdminSidebar() {
+const masterLink = { href: "/admin/users", label: "Admin Users", icon: Users };
+
+export default function AdminSidebar({ isMaster = false }: { isMaster?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -54,6 +57,8 @@ export default function AdminSidebar() {
     await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
     window.location.href = "/admin/login";
   }
+
+  const links = isMaster ? [...baseLinks, masterLink] : baseLinks;
 
   return (
     <>

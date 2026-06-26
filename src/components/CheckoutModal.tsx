@@ -226,13 +226,7 @@ export default function CheckoutModal({
       setLoading(false);
     } else {
       const data = await res.json();
-      const errorMsg = data.error || "Order failed. Please try again.";
-      if (res.status === 409) {
-        setFieldErrors({ phone: errorMsg });
-        setError("");
-      } else {
-        setError(errorMsg);
-      }
+      setError(data.error || "Order failed. Please try again.");
       setLoading(false);
     }
   }

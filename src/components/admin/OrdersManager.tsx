@@ -43,7 +43,8 @@ export default function OrdersManager() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [exporting, setExporting] = useState(false);
+  const [exportingPage, setExportingPage] = useState(false);
+  const [exportingAll, setExportingAll] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
@@ -115,25 +116,41 @@ export default function OrdersManager() {
     }
   }
 
-  async function exportCsv() {
-    setExporting(true);
+  function buildExportParams(scope: "page" | "all") {
     const params = buildParams();
-    params.delete("page");
-    params.delete("limit");
-    const res = await fetch(`/api/orders/export?${params}`);
-    if (res.ok) {
+    params.set("scope", scope);
+    if (scope === "all") {
+      params.delete("page");
+      params.delete("limit");
+    }
+    return params;
+  }
+
+  async function downloadExport(scope: "page" | "all") {
+    const setExporting = scope === "page" ? setExportingPage : setExportingAll;
+    setExporting(true);
+    try {
+      const res = await fetch(`/api/orders/export?${buildExportParams(scope)}`);
+      if (!res.ok) throw new Error("Export failed");
+
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `orders-${scope}-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      setToast({ type: "success", text: "CSV exported successfully." });
-    } else {
+
+      const countLabel =
+        scope === "all"
+          ? `${total.toLocaleString("en-IN")} orders`
+          : `${orders.length} orders on this page`;
+      setToast({ type: "success", text: `Exported ${countLabel} successfully.` });
+    } catch {
       setToast({ type: "error", text: "Export failed." });
+    } finally {
+      setExporting(false);
     }
-    setExporting(false);
   }
 
   const periodCards = [
@@ -262,15 +279,28 @@ export default function OrdersManager() {
             <Search size={18} />
           </AdminButton>
         </form>
-        <AdminButton
-          variant="outline"
-          onClick={exportCsv}
-          loading={exporting}
-          loadingLabel="Exporting..."
-        >
-          <Download size={16} />
-          Export CSV
-        </AdminButton>
+        <div className="orders-export-actions">
+          <AdminButton
+            variant="outline"
+            onClick={() => downloadExport("page")}
+            loading={exportingPage}
+            loadingLabel="Exporting..."
+            disabled={exportingAll || orders.length === 0}
+          >
+            <Download size={16} />
+            Export CSV
+          </AdminButton>
+          <AdminButton
+            variant="primary"
+            onClick={() => downloadExport("all")}
+            loading={exportingAll}
+            loadingLabel="Exporting..."
+            disabled={exportingPage || total === 0}
+          >
+            <Download size={16} />
+            Export All Orders ({total.toLocaleString("en-IN")})
+          </AdminButton>
+        </div>
       </div>
 
       <div className="admin-card admin-card-table orders-table-card">
