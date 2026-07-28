@@ -13,6 +13,7 @@ import {
   Settings,
   ShoppingBag,
   Store,
+  Users,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -24,11 +25,16 @@ const links = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/unsync-orders", label: "Unsync Orders", icon: RefreshCw },
   { href: "/admin/products", label: "Products", icon: Package },
+  { href: "/admin/users", label: "Admin Users", icon: Users, masterOnly: true },
   { href: "/admin/site-config", label: "Site Config", icon: Settings },
   { href: "/admin/policies", label: "Policies", icon: FileText },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({
+  isMaster = false,
+}: {
+  isMaster?: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -94,7 +100,9 @@ export default function AdminSidebar() {
         </div>
 
         <nav className="admin-nav">
-          {links.map((link) => {
+          {links
+            .filter((link) => !link.masterOnly || isMaster)
+            .map((link) => {
             const Icon = link.icon;
             const active =
               link.href === "/admin"

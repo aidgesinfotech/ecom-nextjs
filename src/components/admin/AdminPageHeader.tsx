@@ -2,10 +2,12 @@ export default function AdminPageHeader({
   title,
   breadcrumb,
   username,
+  isMaster = false,
 }: {
   title: string;
   breadcrumb?: string;
   username: string;
+  isMaster?: boolean;
 }) {
   return (
     <header className="admin-header">
@@ -17,7 +19,10 @@ export default function AdminPageHeader({
         <span className="admin-header-avatar">
           {username.charAt(0).toUpperCase()}
         </span>
-        <strong>{username}</strong>
+        <div className="admin-header-user-meta">
+          <strong>{username}</strong>
+          {isMaster ? <span className="admin-master-badge">Master</span> : null}
+        </div>
       </div>
     </header>
   );
