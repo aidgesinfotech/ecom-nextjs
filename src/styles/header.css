@@ -19,8 +19,10 @@
 }
 
 .main-header .header-logo {
-  width: 110px;
+  width: 120px;
   height: auto;
+  max-height: 56px;
+  object-fit: contain;
   display: block;
 }
 

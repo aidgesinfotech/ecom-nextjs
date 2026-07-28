@@ -4,6 +4,7 @@ import { getAdminSession } from "@/lib/auth";
 import { ensureAppReady } from "@/lib/db-init";
 import { getAllTimeStats, getOrdersInRange } from "@/lib/orders";
 import { sendMetaPurchaseEvent } from "@/lib/meta-capi";
+import { pushOrderToShipeaso } from "@/lib/shipeaso";
 import type { DatePeriod } from "@/lib/date-range";
 
 const VALID_PERIODS: DatePeriod[] = [
@@ -75,10 +76,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!/^[0-9]{10}$/.test(String(body.phone))) {
+    const phone = String(body.phone);
+
+    if (!/^[0-9]{10}$/.test(phone)) {
       return NextResponse.json(
         { error: "please enter full 10 digit mobile no." },
         { status: 400 }
+      );
+    }
+
+    const [existingPhoneRows] = await pool.query(
+      "SELECT id FROM orders WHERE phone = ? LIMIT 1",
+      [phone]
+    );
+    if ((existingPhoneRows as { id: number }[]).length > 0) {
+      return NextResponse.json(
+        { error: "An order has already been placed with this mobile number." },
+        { status: 409 }
       );
     }
 
@@ -120,16 +134,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Product is out of stock" }, { status: 400 });
     }
 
+    const orderNumber = `ORD-${Date.now()}`;
+
     const [result] = await pool.query(
-      `INSERT INTO orders (product_id, product_name, size, quantity, customer_name, phone, email, address, city, state, pincode, payment_method, total, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed')`,
+      `INSERT INTO orders (order_number, product_id, product_name, size, quantity, customer_name, phone, email, address, city, state, pincode, payment_method, total, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed')`,
       [
+        orderNumber,
         body.product_id,
         body.product_name,
         body.size || "—",
         body.quantity || 1,
         String(body.customer_name).trim(),
-        String(body.phone),
+        phone,
         body.email || null,
         fullAddress,
         String(body.city).trim(),
@@ -146,12 +163,20 @@ export async function POST(req: NextRequest) {
       orderId: insertId,
       total: Number(body.total),
       customerName: String(body.customer_name).trim(),
-      phone: String(body.phone),
+      phone,
       email: body.email || null,
       productName: String(body.product_name),
     });
 
-    return NextResponse.json({ success: true, order_id: insertId });
+    void pushOrderToShipeaso(insertId).catch((err) => {
+      console.error(`[Shipeaso] Push failed for order ${insertId}:`, err);
+    });
+
+    return NextResponse.json({
+      success: true,
+      order_id: insertId,
+      order_number: orderNumber,
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to place order" }, { status: 500 });

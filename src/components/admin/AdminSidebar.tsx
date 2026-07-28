@@ -9,27 +9,26 @@ import {
   LogOut,
   Menu,
   Package,
+  RefreshCw,
   Settings,
   ShoppingBag,
   Store,
-  Users,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { LOGO_URL } from "@/lib/brand";
+import { BRAND_NAME, LOGO_URL } from "@/lib/brand";
 import AdminButton from "./AdminButton";
 
-const baseLinks = [
+const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/admin/unsync-orders", label: "Unsync Orders", icon: RefreshCw },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/site-config", label: "Site Config", icon: Settings },
   { href: "/admin/policies", label: "Policies", icon: FileText },
 ];
 
-const masterLink = { href: "/admin/users", label: "Admin Users", icon: Users };
-
-export default function AdminSidebar({ isMaster = false }: { isMaster?: boolean }) {
+export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -58,8 +57,6 @@ export default function AdminSidebar({ isMaster = false }: { isMaster?: boolean 
     window.location.href = "/admin/login";
   }
 
-  const links = isMaster ? [...baseLinks, masterLink] : baseLinks;
-
   return (
     <>
       <button
@@ -83,7 +80,7 @@ export default function AdminSidebar({ isMaster = false }: { isMaster?: boolean 
       <aside className={`admin-sidebar ${mobileOpen ? "mobile-open" : ""}`}>
         <div className="admin-sidebar-top">
           <div className="admin-brand">
-            <Image src={LOGO_URL} alt="Aikvis" width={110} height={36} />
+            <Image src={LOGO_URL} alt={BRAND_NAME} width={110} height={36} />
             <span>Admin</span>
           </div>
           <button

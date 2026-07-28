@@ -1,4 +1,4 @@
-import { LOGO_URL } from "./brand";
+import { BRAND_NAME, LOGO_URL } from "./brand";
 
 export const SITE_SETTING_KEYS = [
   "site_name",
@@ -27,12 +27,12 @@ export interface SiteConfig {
 export type PublicSiteConfig = Omit<SiteConfig, "metaCapiAccessToken">;
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  siteName: "Aikvis | Premium Quality Apparel",
+  siteName: `${BRAND_NAME} | Premium Quality Apparel`,
   siteDescription:
-    "At Approx Creation, we bring you premium quality t-shirts and bottom wear crafted for today's modern men. Our designs blend comfort, style, and durability to keep you looking sharp every day. With versatile fashion at affordable prices, we make sure you never compromise on style.",
+    "Shop quality products with free shipping and Cash on Delivery across India. Premium apparel crafted for comfort, style, and durability.",
   headerLogo: LOGO_URL,
   footerLogo: LOGO_URL,
-  favicon: "/aikvis-logo.png",
+  favicon: "/favicon.png",
   buyNowButtonText: "Order Now - Cash On Delivery",
   metaPixelId: "",
   metaCapiAccessToken: "",

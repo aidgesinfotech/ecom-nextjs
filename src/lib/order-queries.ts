@@ -1,30 +1,9 @@
 import pool from "./db";
 import { getDateRange, toMysqlDatetime, type DatePeriod } from "./date-range";
-import type { OrderRow } from "./orders";
+import { mapOrderRow, type OrderRow } from "./orders";
 import type { RowDataPacket } from "mysql2";
 
 export { formatOrderNumber } from "./order-format";
-
-function mapOrder(row: RowDataPacket): OrderRow {
-  return {
-    id: row.id,
-    product_id: row.product_id,
-    product_name: row.product_name,
-    size: row.size,
-    quantity: Number(row.quantity),
-    customer_name: row.customer_name,
-    phone: row.phone,
-    email: row.email,
-    address: row.address,
-    city: row.city,
-    state: row.state,
-    pincode: row.pincode,
-    payment_method: row.payment_method,
-    total: Number(row.total),
-    status: row.status,
-    created_at: row.created_at,
-  };
-}
 
 export interface OrderSummaryStats {
   today: number;
@@ -104,7 +83,13 @@ export interface OrderListFilters {
   dateTo?: string;
 }
 
-function buildOrderWhereClause(filters: Omit<OrderListFilters, "page" | "limit">) {
+export async function getOrdersPaginated(
+  filters: OrderListFilters
+): Promise<OrdersListResult> {
+  const page = Math.max(1, filters.page || 1);
+  const limit = Math.min(100, Math.max(10, filters.limit || 20));
+  const offset = (page - 1) * limit;
+
   const conditions: string[] = ["1=1"];
   const params: (string | number)[] = [];
 
@@ -121,13 +106,15 @@ function buildOrderWhereClause(filters: Omit<OrderListFilters, "page" | "limit">
   if (filters.search?.trim()) {
     const q = `%${filters.search.trim()}%`;
     conditions.push(
-      `(CAST(id AS CHAR) LIKE ? OR customer_name LIKE ? OR phone LIKE ? OR product_name LIKE ?)`
+      `(CAST(id AS CHAR) LIKE ? OR order_number LIKE ? OR customer_name LIKE ? OR phone LIKE ? OR product_name LIKE ?)`
     );
-    params.push(q, q, q, q);
+    params.push(q, q, q, q, q);
   }
 
   if (filters.dateFrom) {
-    const from = toMysqlDatetime(new Date(filters.dateFrom + "T00:00:00+05:30"));
+    const from = toMysqlDatetime(
+      new Date(filters.dateFrom + "T00:00:00+05:30")
+    );
     conditions.push("created_at >= ?");
     params.push(from);
   }
@@ -138,16 +125,7 @@ function buildOrderWhereClause(filters: Omit<OrderListFilters, "page" | "limit">
     params.push(to);
   }
 
-  return { where: conditions.join(" AND "), params };
-}
-
-export async function getOrdersPaginated(
-  filters: OrderListFilters
-): Promise<OrdersListResult> {
-  const page = Math.max(1, filters.page || 1);
-  const limit = Math.min(100, Math.max(10, filters.limit || 20));
-  const offset = (page - 1) * limit;
-  const { where, params } = buildOrderWhereClause(filters);
+  const where = conditions.join(" AND ");
 
   const [countRows] = await pool.query<RowDataPacket[]>(
     `SELECT COUNT(*) as c FROM orders WHERE ${where}`,
@@ -161,7 +139,7 @@ export async function getOrdersPaginated(
   );
 
   return {
-    orders: rows.map(mapOrder),
+    orders: rows.map(mapOrderRow),
     total,
     page,
     limit,
@@ -172,21 +150,43 @@ export async function getOrdersPaginated(
 export async function getAllOrdersForExport(
   filters: Omit<OrderListFilters, "page" | "limit">
 ): Promise<OrderRow[]> {
-  const { where, params } = buildOrderWhereClause(filters);
-  const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT * FROM orders WHERE ${where} ORDER BY created_at DESC`,
-    params
-  );
-  return rows.map(mapOrder);
+  const result = await getOrdersPaginated({ ...filters, page: 1, limit: 10000 });
+  return result.orders;
 }
 
-export async function countOrdersMatching(
-  filters: Omit<OrderListFilters, "page" | "limit">
-): Promise<number> {
-  const { where, params } = buildOrderWhereClause(filters);
+const UNSYNCED_WHERE = `
+  status NOT IN ('cancelled')
+  AND (
+    shipeaso_response IS NULL
+    OR shipeaso_response = ''
+    OR JSON_UNQUOTE(JSON_EXTRACT(shipeaso_response, '$.error')) IS NOT NULL
+  )
+`;
+
+export async function getUnsyncedOrders(
+  page = 1,
+  limit = 20
+): Promise<OrdersListResult> {
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.min(5000, Math.max(1, limit));
+  const offset = (safePage - 1) * safeLimit;
+
   const [countRows] = await pool.query<RowDataPacket[]>(
-    `SELECT COUNT(*) as c FROM orders WHERE ${where}`,
-    params
+    `SELECT COUNT(*) as c FROM orders WHERE ${UNSYNCED_WHERE}`
   );
-  return Number(countRows[0]?.c ?? 0);
+  const total = Number(countRows[0]?.c ?? 0);
+
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT * FROM orders WHERE ${UNSYNCED_WHERE}
+     ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    [safeLimit, offset]
+  );
+
+  return {
+    orders: rows.map(mapOrderRow),
+    total,
+    page: safePage,
+    limit: safeLimit,
+    totalPages: Math.ceil(total / safeLimit) || 1,
+  };
 }

@@ -1,4 +1,6 @@
-export const BRAND_BLUE = "#1a4a8e";
+export const BRAND_BLUE = "#002D56";
 
-export const LOGO_URL =
-  "https://www.aikvis.com/_next/image?url=%2Faikvis-logo.png&w=128&q=75&dpl=dpl_BQVPMdXFCrDhKzuLcVe57wv3gnGd";
+/** Header/footer logo from demo UI (`assets/img/default/logo.png`). */
+export const LOGO_URL = "/logo.png";
+
+export const BRAND_NAME = "ALPHA FULFILL";

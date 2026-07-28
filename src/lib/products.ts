@@ -15,6 +15,7 @@ function mapProduct(row: RowDataPacket): Product {
     compare_price: Number(row.compare_price),
     images: parseImages(row.images),
     category: row.category,
+    sku: row.sku ? String(row.sku) : null,
     sizes: parseSizes(row.sizes),
     quantity: Number(row.quantity),
     stock_status: row.stock_status,

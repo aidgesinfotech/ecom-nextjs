@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
     const token = signAdminToken({
       id: Number(admin.id),
       username: String(admin.username),
-      isMaster: Boolean(admin.is_master),
     });
     await setAdminSessionCookie(token);
     return NextResponse.json({ success: true });

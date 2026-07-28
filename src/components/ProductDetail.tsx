@@ -17,7 +17,10 @@ import "@/styles/product-page.css";
 export default function ProductDetail({ product }: { product: Product }) {
   const { buyNowButtonText } = useSiteConfig();
   const [activeImage, setActiveImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "32");
+  const sizeOptions = product.sizes;
+  const [selectedSize, setSelectedSize] = useState(
+    sizeOptions[0]?.label || "32"
+  );
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const [stickyVisible, setStickyVisible] = useState(false);
@@ -29,7 +32,7 @@ export default function ProductDetail({ product }: { product: Product }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const images = product.images.length ? product.images : ["/aikvis-logo.png"];
+  const images = product.images.length ? product.images : ["/logo.png"];
   const breadcrumbName =
     product.name.length > 40 ? `${product.name.slice(0, 40)}…` : product.name;
 
@@ -84,14 +87,14 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <SizeChartLink onClick={() => setSizeChartOpen(true)} />
               </div>
               <div className="size-grid">
-                {product.sizes.map((size) => (
+                {sizeOptions.map((size) => (
                   <button
-                    key={size}
+                    key={size.label}
                     type="button"
-                    className={`size-btn ${selectedSize === size ? "active" : ""}`}
-                    onClick={() => setSelectedSize(size)}
+                    className={`size-btn ${selectedSize === size.label ? "active" : ""}`}
+                    onClick={() => setSelectedSize(size.label)}
                   >
-                    {size}
+                    {size.label}
                   </button>
                 ))}
               </div>

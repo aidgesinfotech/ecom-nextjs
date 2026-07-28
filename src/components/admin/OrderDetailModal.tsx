@@ -1,8 +1,13 @@
 "use client";
 
-import { X } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 import type { OrderRow } from "@/lib/orders";
 import { formatOrderNumber } from "@/lib/order-format";
+import {
+  getShipeasoSyncStatus,
+  isShipeasoSuccess,
+  parseShipeasoResponse,
+} from "@/lib/shipeaso-status";
 import AdminButton from "./AdminButton";
 
 export default function OrderDetailModal({
@@ -10,15 +15,27 @@ export default function OrderDetailModal({
   open,
   onClose,
   onStatusChange,
+  onResync,
   updating,
+  syncing,
 }: {
   order: OrderRow | null;
   open: boolean;
   onClose: () => void;
   onStatusChange: (id: number, status: string) => void;
+  onResync?: (id: number) => void;
   updating?: boolean;
+  syncing?: boolean;
 }) {
   if (!open || !order) return null;
+
+  const syncStatus = getShipeasoSyncStatus(order.shipeaso_response);
+  const parsed = parseShipeasoResponse(order.shipeaso_response);
+  const displayOrderNo = formatOrderNumber(
+    order.id,
+    order.created_at,
+    order.order_number
+  );
 
   return (
     <div className="admin-modal-overlay" onClick={onClose}>
@@ -26,7 +43,7 @@ export default function OrderDetailModal({
         <div className="admin-modal-header">
           <div>
             <h2>Order Details</h2>
-            <p className="admin-modal-subtitle">{formatOrderNumber(order.id, order.created_at)}</p>
+            <p className="admin-modal-subtitle">{displayOrderNo}</p>
           </div>
           <button type="button" className="admin-modal-close" onClick={onClose} aria-label="Close">
             <X size={20} />
@@ -88,6 +105,69 @@ export default function OrderDetailModal({
                 <option value="cancelled">cancelled</option>
               </select>
             </div>
+            <div>
+              <span className="order-detail-label">Resolved SKU</span>
+              <p>{order.resolved_sku || "—"}</p>
+            </div>
+            <div>
+              <span className="order-detail-label">Shipeaso</span>
+              <p>
+                <span className={`admin-badge shipeaso-${syncStatus}`}>
+                  {syncStatus === "added"
+                    ? "Added"
+                    : syncStatus === "failed"
+                      ? "Failed"
+                      : "Pending"}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div className="shipeaso-detail-panel">
+            <div className="shipeaso-detail-header">
+              <h3>Shipeaso Sync</h3>
+              {onResync && (
+                <AdminButton
+                  type="button"
+                  variant="outline"
+                  loading={syncing}
+                  loadingLabel="Syncing…"
+                  onClick={() => onResync(order.id)}
+                >
+                  <RefreshCw size={16} />
+                  {syncStatus === "added" ? "Resync to Shipeaso" : "Sync to Shipeaso"}
+                </AdminButton>
+              )}
+            </div>
+            {parsed?.request != null && (
+              <div className="shipeaso-json-block">
+                <span className="order-detail-label">Request</span>
+                <pre>{JSON.stringify(parsed.request, null, 2)}</pre>
+              </div>
+            )}
+            {parsed?.response != null && (
+              <div className="shipeaso-json-block">
+                <span className="order-detail-label">Response</span>
+                <pre>{JSON.stringify(parsed.response, null, 2)}</pre>
+              </div>
+            )}
+            {parsed?.error != null && (
+              <div className="shipeaso-json-block shipeaso-json-error">
+                <span className="order-detail-label">Error</span>
+                <pre>{JSON.stringify(parsed.error, null, 2)}</pre>
+              </div>
+            )}
+            {!parsed && (
+              <p className="admin-muted-text">
+                No Shipeaso response yet — sync is pending.
+              </p>
+            )}
+            {parsed && !isShipeasoSuccess(order.shipeaso_response) && !parsed.error && (
+              <div className="shipeaso-json-block">
+                <span className="order-detail-label">Raw</span>
+                <pre>{JSON.stringify(parsed, null, 2)}</pre>
+              </div>
+            )}
           </div>
         </div>
         <div className="admin-modal-footer">

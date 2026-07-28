@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getProductById, revalidateProductsCache } from "@/lib/products";
 import { getAdminSession } from "@/lib/auth";
+import { normalizeSizeOptions } from "@/lib/format";
+import { ensureAppReady } from "@/lib/db-init";
 
 export async function GET(
   _req: NextRequest,
@@ -24,11 +26,13 @@ export async function PUT(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  await ensureAppReady();
   const { id } = await params;
   const body = await req.json();
+  const sizes = normalizeSizeOptions(body.sizes || []);
 
   await pool.query(
-    `UPDATE products SET name=?, description=?, price=?, compare_price=?, images=?, category=?, sizes=?, quantity=?, stock_status=?, featured=? WHERE id=?`,
+    `UPDATE products SET name=?, description=?, price=?, compare_price=?, images=?, category=?, sku=?, sizes=?, quantity=?, stock_status=?, featured=? WHERE id=?`,
     [
       body.name,
       body.description || "",
@@ -36,7 +40,8 @@ export async function PUT(
       body.compare_price || 0,
       JSON.stringify(body.images || []),
       body.category || "Bottom Wear",
-      JSON.stringify(body.sizes || []),
+      body.sku ? String(body.sku).trim() : null,
+      JSON.stringify(sizes),
       body.quantity || 0,
       body.stock_status || "In Stock",
       body.featured ? 1 : 0,

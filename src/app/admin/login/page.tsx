@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { Eye, EyeOff, Lock, ShieldCheck, User } from "lucide-react";
-import { LOGO_URL } from "@/lib/brand";
+import { BRAND_NAME, LOGO_URL } from "@/lib/brand";
 import AdminButton from "@/components/admin/AdminButton";
 
 export default function AdminLoginPage() {
@@ -47,7 +47,7 @@ export default function AdminLoginPage() {
     <div className="admin-login-page">
       <div className="admin-login-brand">
         <div className="admin-login-brand-inner">
-          <Image src={LOGO_URL} alt="Aikvis" width={140} height={48} className="admin-login-logo" />
+          <Image src={LOGO_URL} alt={BRAND_NAME} width={140} height={48} className="admin-login-logo" />
           <h1>Admin Control Panel</h1>
           <p>Manage products, orders, and your storefront from one secure dashboard.</p>
           <ul className="admin-login-features">
@@ -61,7 +61,7 @@ export default function AdminLoginPage() {
             </li>
           </ul>
         </div>
-        <p className="admin-login-brand-footer">© {new Date().getFullYear()} Aikvis. All rights reserved.</p>
+        <p className="admin-login-brand-footer">© {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.</p>
       </div>
 
       <div className="admin-login-form-side">

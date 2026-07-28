@@ -4,6 +4,7 @@ import type { RowDataPacket } from "mysql2";
 
 export interface OrderRow {
   id: number;
+  order_number: string | null;
   product_id: string;
   product_name: string;
   size: string;
@@ -18,6 +19,8 @@ export interface OrderRow {
   payment_method: string;
   total: number;
   status: string;
+  resolved_sku: string | null;
+  shipeaso_response: string | null;
   created_at: string;
 }
 
@@ -30,9 +33,10 @@ export interface OrderStats {
   cancelledCount: number;
 }
 
-function mapOrder(row: RowDataPacket): OrderRow {
+export function mapOrderRow(row: RowDataPacket): OrderRow {
   return {
     id: row.id,
+    order_number: row.order_number ? String(row.order_number) : null,
     product_id: row.product_id,
     product_name: row.product_name,
     size: row.size,
@@ -47,8 +51,38 @@ function mapOrder(row: RowDataPacket): OrderRow {
     payment_method: row.payment_method,
     total: Number(row.total),
     status: row.status,
+    resolved_sku: row.resolved_sku ? String(row.resolved_sku) : null,
+    shipeaso_response: row.shipeaso_response
+      ? String(row.shipeaso_response)
+      : null,
     created_at: row.created_at,
   };
+}
+
+export async function getOrderById(id: number): Promise<OrderRow | null> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    "SELECT * FROM orders WHERE id = ? LIMIT 1",
+    [id]
+  );
+  return rows[0] ? mapOrderRow(rows[0]) : null;
+}
+
+export async function saveShipeasoResponse(
+  orderId: number,
+  responseJson: string,
+  resolvedSku?: string | null
+): Promise<void> {
+  if (resolvedSku !== undefined) {
+    await pool.query(
+      "UPDATE orders SET shipeaso_response = ?, resolved_sku = ? WHERE id = ?",
+      [responseJson, resolvedSku, orderId]
+    );
+  } else {
+    await pool.query(
+      "UPDATE orders SET shipeaso_response = ? WHERE id = ?",
+      [responseJson, orderId]
+    );
+  }
 }
 
 export async function getOrdersInRange(
@@ -67,7 +101,7 @@ export async function getOrdersInRange(
     [from, to]
   );
 
-  const orders = rows.map(mapOrder);
+  const orders = rows.map(mapOrderRow);
 
   const stats: OrderStats = {
     totalOrders: orders.length,

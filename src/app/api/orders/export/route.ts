@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { ensureAppReady } from "@/lib/db-init";
-import { formatOrderNumber, getAllOrdersForExport, getOrdersPaginated } from "@/lib/order-queries";
+import { formatOrderNumber, getAllOrdersForExport } from "@/lib/order-queries";
 
 export const maxDuration = 60;
 
@@ -27,19 +27,14 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get("search") || "";
   const dateFrom = searchParams.get("dateFrom") || undefined;
   const dateTo = searchParams.get("dateTo") || undefined;
-  const scope = searchParams.get("scope") || "all";
-  const filters = { status, payment, search, dateFrom, dateTo };
 
-  const orders =
-    scope === "page"
-      ? (
-          await getOrdersPaginated({
-            ...filters,
-            page: Number(searchParams.get("page") || 1),
-            limit: Number(searchParams.get("limit") || 20),
-          })
-        ).orders
-      : await getAllOrdersForExport(filters);
+  const orders = await getAllOrdersForExport({
+    status,
+    payment,
+    search,
+    dateFrom,
+    dateTo,
+  });
 
   const headers = [
     "Order #",
@@ -62,7 +57,7 @@ export async function GET(req: NextRequest) {
 
   const rows = orders.map((o) =>
     [
-      formatOrderNumber(o.id, o.created_at),
+      formatOrderNumber(o.id, o.created_at, o.order_number),
       o.id,
       o.customer_name,
       o.phone,
@@ -84,11 +79,7 @@ export async function GET(req: NextRequest) {
   );
 
   const csv = [headers.join(","), ...rows].join("\n");
-  const suffix =
-    scope === "page"
-      ? `page-${searchParams.get("page") || 1}`
-      : `all-${orders.length}`;
-  const filename = `orders-export-${suffix}-${new Date().toISOString().slice(0, 10)}.csv`;
+  const filename = `orders-export-${new Date().toISOString().slice(0, 10)}.csv`;
 
   return new NextResponse(csv, {
     headers: {

@@ -12,8 +12,8 @@
 }
 
 .admin-root {
-  --admin-brand: #1a4a8e;
-  --admin-brand-dark: #153d75;
+  --admin-brand: #002D56;
+  --admin-brand-dark: #001f3d;
   --admin-bg: #f0f4f8;
   --admin-sidebar: #0f172a;
   --admin-sidebar-hover: rgba(255, 255, 255, 0.06);
@@ -62,7 +62,6 @@
 }
 
 .admin-login-logo {
-  filter: brightness(0) invert(1);
   margin-bottom: 2.5rem;
 }
 
@@ -397,7 +396,9 @@
 }
 
 .admin-brand img {
-  filter: brightness(0) invert(1);
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .admin-nav {
@@ -547,37 +548,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 700;
-}
-
-.admin-header-user-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  line-height: 1.2;
-}
-
-.admin-header-user-meta strong {
-  color: var(--admin-text);
-}
-
-.admin-header-master-badge {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #059669;
-}
-
-.admin-master-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.admin-tag-you {
-  margin-left: 0.5rem;
-  background: #f1f5f9;
-  color: #64748b;
+  font-size: 0.8rem;
 }
 
 /* ─── Stats & Cards ─── */
@@ -950,6 +921,183 @@
 .admin-badge.shipped { background: #e0f2fe; color: #0369a1; }
 .admin-badge.delivered { background: #d1fae5; color: #065f46; }
 .admin-badge.cancelled { background: #fee2e2; color: #991b1b; }
+
+.admin-badge.shipeaso-added { background: #d1fae5; color: #065f46; }
+.admin-badge.shipeaso-failed { background: #fee2e2; color: #991b1b; }
+.admin-badge.shipeaso-pending { background: #f1f5f9; color: #475569; }
+
+.admin-muted-text {
+  color: var(--admin-muted);
+  font-size: 0.85rem;
+}
+
+.admin-size-sku-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.admin-size-sku-header,
+.admin-size-sku-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 40px;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.admin-size-sku-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.admin-add-size-btn {
+  margin-top: 0.25rem;
+}
+
+.admin-sku-cell {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+
+.orders-shipeaso-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.shipeaso-badge-btn {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.orders-sync-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--admin-brand);
+  cursor: pointer;
+}
+
+.orders-sync-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.orders-sync-btn .spin,
+.spin {
+  animation: admin-spin 0.7s linear infinite;
+}
+
+.shipeaso-detail-panel {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--admin-border);
+}
+
+.shipeaso-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.shipeaso-detail-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.shipeaso-json-block {
+  margin-bottom: 0.85rem;
+}
+
+.shipeaso-json-block pre {
+  margin: 0.35rem 0 0;
+  padding: 0.75rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  overflow: auto;
+  max-height: 220px;
+}
+
+.shipeaso-json-error pre {
+  background: #450a0a;
+  color: #fecaca;
+}
+
+.unsync-batch-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.unsync-batch-btn {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--admin-text);
+}
+
+.unsync-batch-btn.active {
+  border-color: var(--admin-brand);
+  background: #eff6ff;
+  color: var(--admin-brand);
+}
+
+.unsync-progress {
+  margin: 1rem 0;
+}
+
+.unsync-progress-bar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.unsync-progress-fill {
+  height: 100%;
+  background: var(--admin-brand);
+  transition: width 0.3s ease;
+}
+
+.unsync-progress-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--admin-muted);
+}
+
+.unsync-stat-ok { color: var(--admin-success); font-weight: 600; }
+.unsync-stat-fail { color: var(--admin-danger); font-weight: 600; }
+
+.unsync-sync-list {
+  max-height: 280px;
+  margin-top: 0.75rem;
+}
+
+.unsync-row-active {
+  background: #eff6ff;
+}
 
 /* ─── Forms ─── */
 .admin-form {
@@ -1683,14 +1831,6 @@
   flex-wrap: wrap;
   margin-bottom: 1.25rem;
   padding: 1rem 1.25rem !important;
-}
-
-.orders-export-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
 }
 
 .orders-search-form {

@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { revalidateTag } from "next/cache";
 import { shouldSkipDatabase } from "./db-build";
 import pool from "./db";
 import { SEED_PRODUCTS } from "./seed-products";
@@ -8,13 +9,28 @@ import type { RowDataPacket } from "mysql2";
 
 let ready = false;
 
+async function migrateSchemaColumns() {
+  const alters = [
+    "ALTER TABLE products ADD COLUMN sku VARCHAR(100) NULL",
+    "ALTER TABLE orders ADD COLUMN order_number VARCHAR(50) NULL",
+    "ALTER TABLE orders ADD COLUMN resolved_sku VARCHAR(100) NULL",
+    "ALTER TABLE orders ADD COLUMN shipeaso_response LONGTEXT NULL",
+  ];
+  for (const sql of alters) {
+    try {
+      await pool.query(sql);
+    } catch {
+      /* column already exists */
+    }
+  }
+}
+
 async function ensureSchema() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS admins (
       id INT AUTO_INCREMENT PRIMARY KEY,
       username VARCHAR(100) NOT NULL UNIQUE,
       password_hash VARCHAR(255) NOT NULL,
-      is_master TINYINT(1) NOT NULL DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -28,6 +44,7 @@ async function ensureSchema() {
       compare_price DECIMAL(10,2) NOT NULL DEFAULT 0,
       images JSON NOT NULL,
       category VARCHAR(100) DEFAULT 'Bottom Wear',
+      sku VARCHAR(100) NULL,
       sizes JSON NOT NULL,
       quantity INT NOT NULL DEFAULT 0,
       stock_status VARCHAR(50) DEFAULT 'In Stock',
@@ -40,6 +57,7 @@ async function ensureSchema() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS orders (
       id INT AUTO_INCREMENT PRIMARY KEY,
+      order_number VARCHAR(50) NULL,
       product_id VARCHAR(64) NOT NULL,
       product_name VARCHAR(500) NOT NULL,
       size VARCHAR(20) NOT NULL,
@@ -54,9 +72,13 @@ async function ensureSchema() {
       payment_method VARCHAR(50) DEFAULT 'COD',
       total DECIMAL(10,2) NOT NULL,
       status VARCHAR(50) DEFAULT 'pending',
+      resolved_sku VARCHAR(100) NULL,
+      shipeaso_response LONGTEXT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  await migrateSchemaColumns();
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS newsletter_subscribers (
@@ -93,36 +115,18 @@ async function ensureSchema() {
   }
 
   await seedDefaultSiteConfigOnce();
+  await applyDemoBrandingOnce();
   await seedDefaultPolicies();
-
-  try {
-    await pool.query(
-      "ALTER TABLE admins ADD COLUMN is_master TINYINT(1) NOT NULL DEFAULT 0"
-    );
-  } catch {
-    /* column already exists */
-  }
 
   const username = process.env.ADMIN_USERNAME || "admin";
   const password = process.env.ADMIN_PASSWORD || "admin123";
   const hash = await bcrypt.hash(password, 10);
 
   await pool.query(
-    `INSERT INTO admins (username, password_hash, is_master) VALUES (?, ?, 1)
+    `INSERT INTO admins (username, password_hash) VALUES (?, ?)
      ON DUPLICATE KEY UPDATE username = username`,
     [username, hash]
   );
-
-  await pool.query(`UPDATE admins SET is_master = 1 WHERE username = ?`, [username]);
-
-  const [masterRows] = await pool.query<RowDataPacket[]>(
-    "SELECT COUNT(*) as count FROM admins WHERE is_master = 1"
-  );
-  if (Number(masterRows[0]?.count ?? 0) === 0) {
-    await pool.query(
-      "UPDATE admins SET is_master = 1 WHERE id = (SELECT id FROM (SELECT MIN(id) as id FROM admins) t)"
-    );
-  }
 }
 
 async function seedDefaultSiteConfigOnce() {
@@ -147,6 +151,41 @@ async function seedDefaultSiteConfigOnce() {
   }
 }
 
+/** One-time: switch logos/name from Aikvis defaults to demo Alpha Fulfill assets. */
+async function applyDemoBrandingOnce() {
+  const [flagRows] = await pool.query<RowDataPacket[]>(
+    "SELECT setting_value FROM app_settings WHERE setting_key = 'branding_demo_assets_v1' LIMIT 1"
+  );
+  if (flagRows[0]) return;
+
+  const branding: [string, string][] = [
+    ["site_name", DEFAULT_SITE_CONFIG.siteName],
+    ["site_description", DEFAULT_SITE_CONFIG.siteDescription],
+    ["site_header_logo", DEFAULT_SITE_CONFIG.headerLogo],
+    ["site_footer_logo", DEFAULT_SITE_CONFIG.footerLogo],
+    ["site_favicon", DEFAULT_SITE_CONFIG.favicon],
+  ];
+
+  for (const [key, value] of branding) {
+    await pool.query(
+      `INSERT INTO app_settings (setting_key, setting_value) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
+      [key, value]
+    );
+  }
+
+  await pool.query(
+    `INSERT INTO app_settings (setting_key, setting_value) VALUES ('branding_demo_assets_v1', '1')
+     ON DUPLICATE KEY UPDATE setting_value = setting_value`
+  );
+
+  try {
+    revalidateTag("site-config", { expire: 0 });
+  } catch {
+    /* cache may be unavailable during cold init */
+  }
+}
+
 /** Seed defaults only once on first install — never re-seed if admin deletes all products. */
 async function seedDefaultProductsOnce() {
   const [flagRows] = await pool.query<RowDataPacket[]>(
@@ -162,8 +201,8 @@ async function seedDefaultProductsOnce() {
   if (count === 0) {
     for (const p of SEED_PRODUCTS) {
     await pool.query(
-      `INSERT INTO products (id, name, description, price, compare_price, images, category, sizes, quantity, stock_status, featured)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO products (id, name, description, price, compare_price, images, category, sku, sizes, quantity, stock_status, featured)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         p.id,
         p.name,
@@ -172,7 +211,8 @@ async function seedDefaultProductsOnce() {
         p.compare_price,
         JSON.stringify(p.images),
         p.category,
-        JSON.stringify(p.sizes),
+        null,
+        JSON.stringify(p.sizes.map((label: string) => ({ label, sku: "" }))),
         p.quantity,
         p.stock_status,
         p.featured ? 1 : 0,

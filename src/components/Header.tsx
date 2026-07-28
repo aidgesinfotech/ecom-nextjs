@@ -65,10 +65,10 @@ function HeaderContent() {
             <Image
               src={headerLogo}
               alt={`${siteName} Logo`}
-              width={110}
-              height={55}
+              width={120}
+              height={57}
               className="header-logo"
-              style={{ width: 110, height: "auto" }}
+              style={{ width: 120, height: "auto" }}
               priority
               unoptimized
             />

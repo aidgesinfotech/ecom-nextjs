@@ -1,6 +1,6 @@
-/* Footer — exact match aikvis.com (desktop + mobile) */
+/* Footer — Alpha Fulfill brand */
 .footer {
-  background: #1a4a8e;
+  background: #002D56;
   color: #ffffff;
   margin-top: auto;
   padding: 4rem 0 2rem;
@@ -21,8 +21,7 @@
 
 .footer-logo {
   object-fit: contain;
-  filter: brightness(0) invert(1);
-  width: 120px;
+  width: 130px;
   height: auto;
   display: block;
 }

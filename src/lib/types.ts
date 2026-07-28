@@ -1,3 +1,8 @@
+export interface SizeOption {
+  label: string;
+  sku: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -6,7 +11,8 @@ export interface Product {
   compare_price: number;
   images: string[];
   category: string;
-  sizes: string[];
+  sku: string | null;
+  sizes: SizeOption[];
   quantity: number;
   stock_status: string;
   featured: boolean;
@@ -16,6 +22,7 @@ export interface Product {
 
 export interface Order {
   id: number;
+  order_number: string | null;
   product_id: string;
   product_name: string;
   size: string;
@@ -30,6 +37,8 @@ export interface Order {
   payment_method: string;
   total: number;
   status: string;
+  resolved_sku: string | null;
+  shipeaso_response: string | null;
   created_at: string;
 }
 

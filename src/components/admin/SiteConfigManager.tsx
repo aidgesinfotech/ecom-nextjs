@@ -87,7 +87,7 @@ export default function SiteConfigManager({
                 id="siteName"
                 value={config.siteName}
                 onChange={(e) => setConfig((c) => ({ ...c, siteName: e.target.value }))}
-                placeholder="Aikvis | Premium Quality Apparel"
+                placeholder="ALPHA FULFILL | Premium Quality Apparel"
                 required
               />
             </div>

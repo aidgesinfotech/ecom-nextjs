@@ -16,5 +16,5 @@ export default async function AdminPanelLayout({
 
   await ensureAppReady();
 
-  return <AdminShell isMaster={session.isMaster}>{children}</AdminShell>;
+  return <AdminShell>{children}</AdminShell>;
 }

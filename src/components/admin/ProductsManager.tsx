@@ -5,12 +5,23 @@ import Link from "next/link";
 import { FormEvent, useCallback, useState } from "react";
 import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { Product } from "@/lib/types";
+import type { Product, SizeOption } from "@/lib/types";
 import AdminButton from "./AdminButton";
 import AdminModal from "./AdminModal";
 import AdminToast, { type ToastMessage } from "./AdminToast";
 import ConfirmDialog from "./ConfirmDialog";
 import ImageUploader from "./ImageUploader";
+
+const DEFAULT_SIZES: SizeOption[] = [
+  "28",
+  "30",
+  "32",
+  "34",
+  "36",
+  "38",
+  "40",
+  "42",
+].map((label) => ({ label, sku: "" }));
 
 function ProductForm({
   editing,
@@ -21,12 +32,19 @@ function ProductForm({
 }: {
   editing: Product | null;
   saving: boolean;
-  onSubmit: (e: FormEvent<HTMLFormElement>, images: string[]) => void;
+  onSubmit: (
+    e: FormEvent<HTMLFormElement>,
+    images: string[],
+    sizes: SizeOption[]
+  ) => void;
   onCancel: () => void;
   onError: (message: string) => void;
 }) {
   const [images, setImages] = useState<string[]>(editing?.images || []);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [sizes, setSizes] = useState<SizeOption[]>(
+    editing?.sizes?.length ? editing.sizes : DEFAULT_SIZES
+  );
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,7 +56,28 @@ function ProductForm({
       onError("Please upload at least one product image.");
       return;
     }
-    onSubmit(e, images);
+    const cleaned = sizes
+      .map((s) => ({ label: s.label.trim(), sku: s.sku.trim() }))
+      .filter((s) => s.label);
+    if (cleaned.length === 0) {
+      onError("Please add at least one size.");
+      return;
+    }
+    onSubmit(e, images, cleaned);
+  }
+
+  function updateSize(index: number, field: "label" | "sku", value: string) {
+    setSizes((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, [field]: value } : s))
+    );
+  }
+
+  function addSize() {
+    setSizes((prev) => [...prev, { label: "", sku: "" }]);
+  }
+
+  function removeSize(index: number) {
+    setSizes((prev) => prev.filter((_, i) => i !== index));
   }
 
   return (
@@ -102,12 +141,60 @@ function ProductForm({
       </div>
 
       <div className="admin-form-full">
-        <label htmlFor="sizes">Sizes (comma separated)</label>
+        <label htmlFor="sku">Base Product SKU</label>
         <input
-          id="sizes"
-          name="sizes"
-          defaultValue={editing?.sizes?.join(",") || "28,30,32,34,36,38,40,42"}
+          id="sku"
+          name="sku"
+          placeholder="Fallback SKU if size SKU is empty"
+          defaultValue={editing?.sku || ""}
         />
+        <span className="admin-field-hint">
+          Used for Shipeaso when a size-specific SKU is not set.
+        </span>
+      </div>
+
+      <div className="admin-form-full">
+        <label>Sizes &amp; SKUs</label>
+        <div className="admin-size-sku-list">
+          <div className="admin-size-sku-header">
+            <span>Size</span>
+            <span>SKU (Shipeaso)</span>
+            <span />
+          </div>
+          {sizes.map((row, index) => (
+            <div key={index} className="admin-size-sku-row">
+              <input
+                type="text"
+                value={row.label}
+                onChange={(e) => updateSize(index, "label", e.target.value)}
+                placeholder="e.g. 32"
+                required
+                aria-label={`Size label ${index + 1}`}
+              />
+              <input
+                type="text"
+                value={row.sku}
+                onChange={(e) => updateSize(index, "sku", e.target.value)}
+                placeholder="e.g. CARGO-32"
+                aria-label={`Size SKU ${index + 1}`}
+              />
+              <AdminButton
+                type="button"
+                variant="ghost"
+                className="admin-btn-icon admin-btn-icon-danger"
+                onClick={() => removeSize(index)}
+                disabled={sizes.length <= 1}
+                title="Remove size"
+              >
+                <Trash2 size={16} />
+              </AdminButton>
+            </div>
+          ))}
+        </div>
+        <AdminButton type="button" variant="outline" onClick={addSize} className="admin-add-size-btn">
+          <Plus size={16} />
+          Add Size
+        </AdminButton>
       </div>
 
       <div>
@@ -215,14 +302,14 @@ export default function ProductsManager({
     setModalOpen(true);
   }
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>, images: string[]) {
+  async function onSubmit(
+    e: FormEvent<HTMLFormElement>,
+    images: string[],
+    sizes: SizeOption[]
+  ) {
     e.preventDefault();
     setSaving(true);
     const fd = new FormData(e.currentTarget);
-    const sizes = (fd.get("sizes") as string)
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
 
     const payload = {
       name: fd.get("name"),
@@ -230,6 +317,7 @@ export default function ProductsManager({
       price: Number(fd.get("price")),
       compare_price: Number(fd.get("compare_price")),
       images,
+      sku: String(fd.get("sku") || "").trim() || null,
       sizes,
       quantity: Number(fd.get("quantity")),
       stock_status: fd.get("stock_status"),
@@ -311,6 +399,7 @@ export default function ProductsManager({
           <thead>
             <tr>
               <th>Product</th>
+              <th>SKU</th>
               <th>Price</th>
               <th>Category</th>
               <th>Stock</th>
@@ -320,7 +409,7 @@ export default function ProductsManager({
           <tbody>
             {products.length === 0 && (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={6}>
                   <div className="admin-empty-state">
                     <p>No products yet</p>
                     <span>Click &quot;Add Product&quot; to create your first listing.</span>
@@ -348,6 +437,9 @@ export default function ProductsManager({
                       {p.featured && <span className="admin-tag">Featured</span>}
                     </div>
                   </div>
+                </td>
+                <td className="admin-sku-cell">
+                  {p.sku || <span className="admin-muted-text">—</span>}
                 </td>
                 <td>
                   <strong>₹{p.price}</strong>

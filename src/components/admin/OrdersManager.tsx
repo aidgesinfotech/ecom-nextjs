@@ -10,6 +10,7 @@ import {
   History,
   IndianRupee,
   Package,
+  RefreshCw,
   Search,
   ShoppingBag,
   Target,
@@ -19,6 +20,7 @@ import {
 import type { OrderRow } from "@/lib/orders";
 import type { OrderSummaryStats } from "@/lib/order-queries";
 import { formatOrderNumber } from "@/lib/order-format";
+import { getShipeasoSyncStatus, isShipeasoSuccess } from "@/lib/shipeaso-status";
 import AdminButton from "./AdminButton";
 import AdminToast, { type ToastMessage } from "./AdminToast";
 import OrderDetailModal from "./OrderDetailModal";
@@ -43,8 +45,7 @@ export default function OrdersManager() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [exportingPage, setExportingPage] = useState(false);
-  const [exportingAll, setExportingAll] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
@@ -54,6 +55,7 @@ export default function OrdersManager() {
   const [dateTo, setDateTo] = useState("");
 
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [syncingId, setSyncingId] = useState<number | null>(null);
   const [viewOrder, setViewOrder] = useState<OrderRow | null>(null);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
@@ -116,41 +118,54 @@ export default function OrdersManager() {
     }
   }
 
-  function buildExportParams(scope: "page" | "all") {
-    const params = buildParams();
-    params.set("scope", scope);
-    if (scope === "all") {
-      params.delete("page");
-      params.delete("limit");
+  async function resyncShipeaso(id: number) {
+    setSyncingId(id);
+    try {
+      const res = await fetch(`/api/orders/${id}/resync-shipeaso`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Resync failed");
+      }
+      const updated = data.data as OrderRow;
+      setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
+      if (viewOrder?.id === id) setViewOrder(updated);
+      const ok = isShipeasoSuccess(updated.shipeaso_response);
+      setToast({
+        type: ok ? "success" : "error",
+        text: ok ? "Synced to Shipeaso." : "Shipeaso sync failed — check details.",
+      });
+      fetchOrders();
+    } catch (err) {
+      setToast({
+        type: "error",
+        text: err instanceof Error ? err.message : "Resync failed.",
+      });
+    } finally {
+      setSyncingId(null);
     }
-    return params;
   }
 
-  async function downloadExport(scope: "page" | "all") {
-    const setExporting = scope === "page" ? setExportingPage : setExportingAll;
+  async function exportCsv() {
     setExporting(true);
-    try {
-      const res = await fetch(`/api/orders/export?${buildExportParams(scope)}`);
-      if (!res.ok) throw new Error("Export failed");
-
+    const params = buildParams();
+    params.delete("page");
+    params.delete("limit");
+    const res = await fetch(`/api/orders/export?${params}`);
+    if (res.ok) {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `orders-${scope}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-
-      const countLabel =
-        scope === "all"
-          ? `${total.toLocaleString("en-IN")} orders`
-          : `${orders.length} orders on this page`;
-      setToast({ type: "success", text: `Exported ${countLabel} successfully.` });
-    } catch {
+      setToast({ type: "success", text: "CSV exported successfully." });
+    } else {
       setToast({ type: "error", text: "Export failed." });
-    } finally {
-      setExporting(false);
     }
+    setExporting(false);
   }
 
   const periodCards = [
@@ -279,28 +294,15 @@ export default function OrdersManager() {
             <Search size={18} />
           </AdminButton>
         </form>
-        <div className="orders-export-actions">
-          <AdminButton
-            variant="outline"
-            onClick={() => downloadExport("page")}
-            loading={exportingPage}
-            loadingLabel="Exporting..."
-            disabled={exportingAll || orders.length === 0}
-          >
-            <Download size={16} />
-            Export CSV
-          </AdminButton>
-          <AdminButton
-            variant="primary"
-            onClick={() => downloadExport("all")}
-            loading={exportingAll}
-            loadingLabel="Exporting..."
-            disabled={exportingPage || total === 0}
-          >
-            <Download size={16} />
-            Export All Orders ({total.toLocaleString("en-IN")})
-          </AdminButton>
-        </div>
+        <AdminButton
+          variant="outline"
+          onClick={exportCsv}
+          loading={exporting}
+          loadingLabel="Exporting..."
+        >
+          <Download size={16} />
+          Export CSV
+        </AdminButton>
       </div>
 
       <div className="admin-card admin-card-table orders-table-card">
@@ -328,15 +330,18 @@ export default function OrdersManager() {
                   <th>Total</th>
                   <th>Payment</th>
                   <th>Status</th>
+                  <th>Shipeaso</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order, idx) => (
+                {orders.map((order, idx) => {
+                  const syncStatus = getShipeasoSyncStatus(order.shipeaso_response);
+                  return (
                   <tr key={order.id}>
                     <td>{(page - 1) * 20 + idx + 1}</td>
                     <td className="orders-num">
-                      {formatOrderNumber(order.id, order.created_at)}
+                      {formatOrderNumber(order.id, order.created_at, order.order_number)}
                     </td>
                     <td>
                       <div className="orders-customer-cell">
@@ -381,6 +386,36 @@ export default function OrdersManager() {
                       </select>
                     </td>
                     <td>
+                      <div className="orders-shipeaso-cell">
+                        <button
+                          type="button"
+                          className={`admin-badge shipeaso-${syncStatus} shipeaso-badge-btn`}
+                          onClick={() => setViewOrder(order)}
+                          title="View Shipeaso details"
+                        >
+                          {syncStatus === "added"
+                            ? "Added"
+                            : syncStatus === "failed"
+                              ? "Failed"
+                              : "Pending"}
+                        </button>
+                        {syncStatus !== "added" && (
+                          <button
+                            type="button"
+                            className="orders-sync-btn"
+                            disabled={syncingId === order.id}
+                            onClick={() => resyncShipeaso(order.id)}
+                            title="Sync to Shipeaso"
+                          >
+                            <RefreshCw
+                              size={14}
+                              className={syncingId === order.id ? "spin" : undefined}
+                            />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                    <td>
                       <button
                         type="button"
                         className="orders-view-btn"
@@ -391,7 +426,8 @@ export default function OrdersManager() {
                       </button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
             </div>
@@ -433,7 +469,9 @@ export default function OrdersManager() {
         open={!!viewOrder}
         onClose={() => setViewOrder(null)}
         onStatusChange={updateStatus}
+        onResync={resyncShipeaso}
         updating={viewOrder ? updatingId === viewOrder.id : false}
+        syncing={viewOrder ? syncingId === viewOrder.id : false}
       />
     </>
   );
