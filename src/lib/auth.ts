@@ -36,16 +36,28 @@ export function isMasterAdmin(username: string) {
   return username.trim() === getMasterAdminUsername();
 }
 
-export async function getAdminSession() {
+export interface AdminSession {
+  id: number;
+  username: string;
+  isMaster: boolean;
+}
+
+export async function getAdminSession(): Promise<AdminSession | null> {
   noStore();
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
-  return verifyAdminToken(token);
+  const session = verifyAdminToken(token);
+  if (!session) return null;
+  return {
+    id: session.id,
+    username: session.username,
+    isMaster: isMasterAdmin(session.username),
+  };
 }
 
 export async function requireMasterSession(): Promise<
-  | { session: { id: number; username: string }; response: null }
+  | { session: AdminSession; response: null }
   | { session: null; response: NextResponse }
 > {
   const session = await getAdminSession();
