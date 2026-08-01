@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import ProductsManager from "@/components/admin/ProductsManager";
 import { getAdminSession } from "@/lib/auth";
@@ -7,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
   const session = await getAdminSession();
+  if (!session) redirect("/admin/login");
   const products = await getProducts({ fresh: true });
 
   return (
@@ -14,7 +16,7 @@ export default async function AdminProductsPage() {
       <AdminPageHeader
         title="Products"
         breadcrumb="Home › Products"
-        username={session!.username}
+        username={session.username}
       />
       <div className="admin-page-body">
         <ProductsManager initialProducts={JSON.parse(JSON.stringify(products))} />

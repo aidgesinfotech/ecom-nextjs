@@ -3,8 +3,11 @@ import { cookies } from "next/headers";
 import { unstable_noStore as noStore } from "next/cache";
 import { NextResponse } from "next/server";
 
-const JWT_KEY = (process.env.JWT_KEY || "aidges").trim();
 const COOKIE_NAME = "aikvis_admin_token";
+
+function getJwtKey() {
+  return (process.env.JWT_KEY || "aidges").trim();
+}
 
 export function getAdminCookieOptions() {
   return {
@@ -17,12 +20,12 @@ export function getAdminCookieOptions() {
 }
 
 export function signAdminToken(payload: { id: number; username: string }) {
-  return jwt.sign(payload, JWT_KEY, { expiresIn: "7d" });
+  return jwt.sign(payload, getJwtKey(), { expiresIn: "7d" });
 }
 
 export function verifyAdminToken(token: string) {
   try {
-    return jwt.verify(token, JWT_KEY) as { id: number; username: string };
+    return jwt.verify(token, getJwtKey()) as { id: number; username: string };
   } catch {
     return null;
   }

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
-import { Hash, Loader2, Lock, MapPin, Phone, User, X } from "lucide-react";
+import { Hash, Loader2, Lock, MapPin, Package, Phone, User, X } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
 import OrderThankYou, { type OrderConfirmation } from "./OrderThankYou";
@@ -113,6 +113,7 @@ export default function CheckoutModal({
   const [confirmedOrder, setConfirmedOrder] = useState<OrderConfirmation | null>(null);
   const [fieldErrors, setFieldErrors] = useState<CheckoutFieldErrors>({});
   const [error, setError] = useState("");
+  const [orderInTransitOpen, setOrderInTransitOpen] = useState(false);
   const [timer, setTimer] = useState(480);
 
   useEffect(() => {
@@ -120,6 +121,7 @@ export default function CheckoutModal({
     setConfirmedOrder(null);
     setFieldErrors({});
     setError("");
+    setOrderInTransitOpen(false);
     setLoading(false);
     setTimer(480);
     document.body.style.overflow = "hidden";
@@ -226,12 +228,12 @@ export default function CheckoutModal({
       setLoading(false);
     } else {
       const data = await res.json();
-      const errorMsg = data.error || "Order failed. Please try again.";
       if (res.status === 409) {
-        setFieldErrors({ phone: errorMsg });
+        setOrderInTransitOpen(true);
         setError("");
+        setFieldErrors({});
       } else {
-        setError(errorMsg);
+        setError(data.error || "Order failed. Please try again.");
       }
       setLoading(false);
     }
@@ -240,7 +242,9 @@ export default function CheckoutModal({
   return (
     <div
       className="checkout-modal-overlay"
-      onClick={loading || confirmedOrder ? undefined : onClose}
+      onClick={
+        loading || confirmedOrder || orderInTransitOpen ? undefined : onClose
+      }
       role="presentation"
     >
       <div
@@ -564,6 +568,35 @@ export default function CheckoutModal({
           )}
         </div>
       </div>
+
+      {orderInTransitOpen && (
+        <div
+          className="checkout-alert-overlay"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="order-in-transit-title"
+          aria-describedby="order-in-transit-desc"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="checkout-alert-box">
+            <div className="checkout-alert-icon" aria-hidden>
+              <Package size={28} />
+            </div>
+            <h3 id="order-in-transit-title">Order Already Placed</h3>
+            <p id="order-in-transit-desc">
+              Your previous order is on the way. You can place a new order after
+              its delivery.
+            </p>
+            <button
+              type="button"
+              className="checkout-alert-btn"
+              onClick={() => setOrderInTransitOpen(false)}
+            >
+              Okay, Got It
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

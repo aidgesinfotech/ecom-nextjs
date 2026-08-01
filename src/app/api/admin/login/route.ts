@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import pool from "@/lib/db";
-import { setAdminSessionCookie, signAdminToken } from "@/lib/auth";
+import {
+  COOKIE_NAME,
+  getAdminCookieOptions,
+  signAdminToken,
+} from "@/lib/auth";
 import { ensureAppReady } from "@/lib/db-init";
 import type { RowDataPacket } from "mysql2";
 
@@ -27,9 +31,23 @@ export async function POST(req: NextRequest) {
       id: Number(admin.id),
       username: String(admin.username),
     });
-    await setAdminSessionCookie(token);
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Login failed" }, { status: 500 });
+
+    const response = NextResponse.json({ success: true });
+    response.cookies.set(COOKIE_NAME, token, getAdminCookieOptions());
+    return response;
+  } catch (error) {
+    const err = error as { message?: string; code?: string; stack?: string };
+    console.error("[admin/login] failed:", {
+      message: err?.message,
+      code: err?.code,
+      stack: err?.stack,
+    });
+    return NextResponse.json(
+      {
+        error: "Login failed",
+        detail: err?.message || err?.code || "unknown",
+      },
+      { status: 500 }
+    );
   }
 }

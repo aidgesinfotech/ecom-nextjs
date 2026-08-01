@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import PoliciesManager from "@/components/admin/PoliciesManager";
 import { getAdminSession } from "@/lib/auth";
@@ -7,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPoliciesPage() {
   const session = await getAdminSession();
+  if (!session) redirect("/admin/login");
   const policies = await getPolicies();
 
   return (
@@ -14,7 +16,7 @@ export default async function AdminPoliciesPage() {
       <AdminPageHeader
         title="Policy Pages"
         breadcrumb="Home › Policy Pages"
-        username={session!.username}
+        username={session.username}
       />
       <div className="admin-page-body">
         <PoliciesManager initialPolicies={JSON.parse(JSON.stringify(policies))} />

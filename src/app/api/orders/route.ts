@@ -18,39 +18,51 @@ const VALID_PERIODS: DatePeriod[] = [
 ];
 
 export async function GET(req: NextRequest) {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const session = await getAdminSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  await ensureAppReady();
+    await ensureAppReady();
 
-  const { searchParams } = new URL(req.url);
-  const period = (searchParams.get("period") || "today") as DatePeriod;
-  const from = searchParams.get("from") || undefined;
-  const to = searchParams.get("to") || undefined;
+    const { searchParams } = new URL(req.url);
+    const period = (searchParams.get("period") || "today") as DatePeriod;
+    const from = searchParams.get("from") || undefined;
+    const to = searchParams.get("to") || undefined;
 
-  if (!VALID_PERIODS.includes(period)) {
-    return NextResponse.json({ error: "Invalid period" }, { status: 400 });
-  }
+    if (!VALID_PERIODS.includes(period)) {
+      return NextResponse.json({ error: "Invalid period" }, { status: 400 });
+    }
 
-  if (period === "custom" && (!from || !to)) {
+    if (period === "custom" && (!from || !to)) {
+      return NextResponse.json(
+        { error: "Custom range requires from and to dates" },
+        { status: 400 }
+      );
+    }
+
+    const { orders, stats, rangeLabel } = await getOrdersInRange(
+      period,
+      from,
+      to
+    );
+    const allTime = await getAllTimeStats();
+
+    return NextResponse.json({
+      orders,
+      stats,
+      rangeLabel,
+      period,
+      allTime,
+    });
+  } catch (error) {
+    console.error("[orders GET]", error);
     return NextResponse.json(
-      { error: "Custom range requires from and to dates" },
-      { status: 400 }
+      { error: "Failed to load orders" },
+      { status: 500 }
     );
   }
-
-  const { orders, stats, rangeLabel } = await getOrdersInRange(period, from, to);
-  const allTime = await getAllTimeStats();
-
-  return NextResponse.json({
-    orders,
-    stats,
-    rangeLabel,
-    period,
-    allTime,
-  });
 }
 
 export async function POST(req: NextRequest) {
@@ -85,13 +97,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const [existingPhoneRows] = await pool.query(
-      "SELECT id FROM orders WHERE phone = ? LIMIT 1",
+    // Block only while a previous order for this phone is still active (not delivered/cancelled)
+    const [activePhoneRows] = await pool.query(
+      `SELECT id, status FROM orders
+       WHERE phone = ?
+         AND LOWER(status) NOT IN ('delivered', 'cancelled')
+       ORDER BY created_at DESC
+       LIMIT 1`,
       [phone]
     );
-    if ((existingPhoneRows as { id: number }[]).length > 0) {
+    if ((activePhoneRows as { id: number }[]).length > 0) {
       return NextResponse.json(
-        { error: "An order has already been placed with this mobile number." },
+        {
+          code: "ORDER_IN_TRANSIT",
+          error:
+            "Your previous order is on the way. You can place a new order after its delivery.",
+        },
         { status: 409 }
       );
     }

@@ -413,6 +413,71 @@
   cursor: pointer;
 }
 
+/* Active-order phone block popup */
+.checkout-alert-overlay {
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.45);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: inherit;
+}
+
+.checkout-alert-box {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 360px;
+  padding: 28px 22px 22px;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+}
+
+.checkout-alert-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkout-alert-box h3 {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.checkout-alert-box p {
+  margin: 0 0 20px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+.checkout-alert-btn {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: #002d56;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.checkout-alert-btn:hover {
+  background: #001f3d;
+}
+
 @media (max-width: 768px) {
   .checkout-modal-overlay {
     align-items: center;
